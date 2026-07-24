@@ -1,19 +1,26 @@
 package server
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"net"
 
 	"github.com/dmi3midd/memap/config"
+	"github.com/dmi3midd/memap/core/ns"
+	"github.com/dmi3midd/protorw"
+
+	memapv1 "github.com/dmi3midd/memap/proto/gen/memapv1/go"
 )
 
+// TODO: Implement Worker Pool pattern for server
 type Server struct {
-	cfg *config.ServerConfig
+	cfg     *config.ServerConfig
+	manager *ns.NamespaceManager
 }
 
-func NewServer(cfg *config.ServerConfig) *Server {
+func NewServer(
+	cfg *config.ServerConfig,
+) *Server {
 	return &Server{cfg: cfg}
 }
 
@@ -30,26 +37,30 @@ func (s *Server) Start() error {
 		if err != nil {
 			return fmt.Errorf("failed to accept: %w", err)
 		}
-		go handleConnection(conn)
+		go s.handleConnection(conn)
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
-	reader := bufio.NewReader(conn)
 	for {
-		bytes, err := reader.ReadBytes(byte('\n'))
+		var req memapv1.Request
+
+		err := protorw.ReadMsg(conn, &req)
 		if err != nil {
-			if err != io.EOF {
-				fmt.Printf("Read error: %v", err)
+			if err == io.EOF {
+				return
 			}
+			fmt.Printf("Read error: %v\n", err)
 			return
 		}
-		fmt.Println(bytes)
-		fmt.Println(string(bytes))
-		_, err = conn.Write([]byte(fmt.Sprintf("response: %s", string(bytes))))
-		if err != nil {
-			fmt.Printf("Write error: %v", err)
+		fmt.Println(req.String())
+
+		resp := s.processRequest(&req)
+
+		if err := protorw.WriteMsg(conn, resp); err != nil {
+			fmt.Printf("Write error: %v\n", err)
+			return
 		}
 	}
 }
