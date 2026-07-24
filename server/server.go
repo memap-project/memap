@@ -16,6 +16,7 @@ import (
 type Server struct {
 	cfg     *config.ServerConfig
 	manager *ns.NamespaceManager
+	pool    *Pool
 }
 
 func NewServer(
@@ -25,6 +26,9 @@ func NewServer(
 }
 
 func (s *Server) Start() error {
+	s.pool = NewPool(s.handleConnection, 100)
+	s.pool.Start(10)
+
 	addr := fmt.Sprintf(":%d", s.cfg.Port)
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -37,7 +41,8 @@ func (s *Server) Start() error {
 		if err != nil {
 			return fmt.Errorf("failed to accept: %w", err)
 		}
-		go s.handleConnection(conn)
+
+		s.pool.tasks <- conn
 	}
 }
 
@@ -45,7 +50,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {
 		var req memapv1.Request
-
 		err := protorw.ReadMsg(conn, &req)
 		if err != nil {
 			if err == io.EOF {
