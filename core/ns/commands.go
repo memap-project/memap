@@ -66,11 +66,10 @@ func (nm *NamespaceManager) Get(ns, key string) (*Item, error) {
 
 	if item.IsExpired() {
 		nm.mu.Lock()
-		if n, exists := nm.namespaces[ns]; exists {
-			if cur, ok := n.dict[key]; ok && cur.IsExpired() {
-				delete(n.dict, key)
-			}
+		if cur, ok := n.dict[key]; ok && cur.IsExpired() {
+			delete(n.dict, key)
 		}
+
 		nm.mu.Unlock()
 		return nil, ErrKeyNotFound
 	}
@@ -92,7 +91,7 @@ func (nm *NamespaceManager) Set(ns, key, value string, ttl time.Duration) error 
 		Value: value,
 	}
 	if ttl > 0 {
-		item.ExpiresAt = time.Now().Add(ttl)
+		item.ExpiresAt = time.Now().Add(ttl * time.Second)
 	}
 
 	if n, exists := nm.namespaces[ns]; exists {

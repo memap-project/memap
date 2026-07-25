@@ -12,7 +12,6 @@ import (
 	memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 )
 
-// TODO: Implement Worker Pool pattern for server
 type Server struct {
 	cfg       *config.ServerConfig
 	semaphore chan struct{}
@@ -73,7 +72,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			if err == io.EOF {
 				return
 			}
-			fmt.Printf("Read error: %v\n", err)
+			fmt.Printf("failed to read: %v\n", err)
 			return
 		}
 		fmt.Println(req.String())
@@ -81,7 +80,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		resp := s.processRequest(&req)
 
 		if err := protorw.WriteMsg(conn, resp); err != nil {
-			fmt.Printf("Write error: %v\n", err)
+			fmt.Printf("failed to write: %v\n", err)
 			return
 		}
 	}
