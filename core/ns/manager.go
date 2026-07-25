@@ -16,6 +16,7 @@ func NewNamespaceManager() *NamespaceManager {
 	ctx, cancel := context.WithCancel(context.Background())
 	systemNs := NewNamespace()
 	return &NamespaceManager{
+		mu:     sync.RWMutex{},
 		ctx:    ctx,
 		cancel: cancel,
 		namespaces: map[string]*Namespace{

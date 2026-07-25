@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/dmi3midd/memap/config"
+	"github.com/dmi3midd/memap/core/ns"
 	"github.com/dmi3midd/memap/server"
 )
 
@@ -14,7 +15,9 @@ func main() {
 		return
 	}
 
-	server := server.NewServer(&cfg.Server)
+	manager := ns.NewNamespaceManager()
+
+	server := server.NewServer(&cfg.Server, manager)
 	err = server.Start()
 	if err != nil {
 		log.Fatal(err)

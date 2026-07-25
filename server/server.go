@@ -14,21 +14,23 @@ import (
 
 // TODO: Implement Worker Pool pattern for server
 type Server struct {
-	cfg     *config.ServerConfig
-	manager *ns.NamespaceManager
-	pool    *Pool
+	cfg       *config.ServerConfig
+	semaphore chan struct{}
+	manager   *ns.NamespaceManager
 }
 
 func NewServer(
 	cfg *config.ServerConfig,
+	manager *ns.NamespaceManager,
 ) *Server {
-	return &Server{cfg: cfg}
+	return &Server{
+		cfg:       cfg,
+		manager:   manager,
+		semaphore: make(chan struct{}, cfg.MaxConnections),
+	}
 }
 
 func (s *Server) Start() error {
-	s.pool = NewPool(s.handleConnection, 100)
-	s.pool.Start(10)
-
 	addr := fmt.Sprintf(":%d", s.cfg.Port)
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -41,8 +43,24 @@ func (s *Server) Start() error {
 		if err != nil {
 			return fmt.Errorf("failed to accept: %w", err)
 		}
-
-		s.pool.tasks <- conn
+		select {
+		case s.semaphore <- struct{}{}:
+			go func() {
+				defer func() {
+					<-s.semaphore
+				}()
+				s.handleConnection(conn)
+			}()
+		default:
+			go func(c net.Conn) {
+				defer c.Close()
+				resp := &memapv1.Response{
+					Success:      false,
+					ErrorMessage: "server limit reached: too many connections",
+				}
+				_ = protorw.WriteMsg(c, resp)
+			}(conn)
+		}
 	}
 }
 

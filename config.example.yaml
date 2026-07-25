@@ -1,2 +1,3 @@
 server:
   port: 2118
+  maxConnections: 100

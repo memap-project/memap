@@ -42,28 +42,40 @@ func (nm *NamespaceManager) DeleteNs(name string) error {
 }
 
 // [Get] retrieves an item from the namespace by key.
-// Returns [ErrKeyNotFound] if the key is not found.
+// Returns [ErrKeyNotFound] if the key is not found or expired.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Get(ns, key string) (*Item, error) {
 	nm.mu.RLock()
-	defer nm.mu.RUnlock()
 
 	if ns == "" {
 		ns = "sys"
 	}
 
-	if n, exists := nm.namespaces[ns]; exists {
-		item, exists := n.dict[key]
-		if exists {
-			if item.IsExpired() && !item.ExpiresAt.IsZero() {
-				delete(n.dict, key)
-				return nil, nil
-			}
-			return &item, nil
-		}
+	n, exists := nm.namespaces[ns]
+	if !exists {
+		nm.mu.RUnlock()
+		return nil, ErrNamespaceNotFound
+	}
+
+	item, exists := n.dict[key]
+	nm.mu.RUnlock()
+
+	if !exists {
 		return nil, ErrKeyNotFound
 	}
-	return nil, ErrNamespaceNotFound
+
+	if item.IsExpired() {
+		nm.mu.Lock()
+		if n, exists := nm.namespaces[ns]; exists {
+			if cur, ok := n.dict[key]; ok && cur.IsExpired() {
+				delete(n.dict, key)
+			}
+		}
+		nm.mu.Unlock()
+		return nil, ErrKeyNotFound
+	}
+
+	return &item, nil
 }
 
 // [Set] stores an item in the namespace by key.
@@ -79,9 +91,8 @@ func (nm *NamespaceManager) Set(ns, key, value string, ttl time.Duration) error 
 	item := Item{
 		Value: value,
 	}
-	var zeroTtl time.Time
-	if ttl == 0 {
-		item.ExpiresAt = zeroTtl
+	if ttl > 0 {
+		item.ExpiresAt = time.Now().Add(ttl)
 	}
 
 	if n, exists := nm.namespaces[ns]; exists {

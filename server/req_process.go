@@ -16,7 +16,7 @@ func (s *Server) processRequest(req *memapv1.Request) *memapv1.Response {
 		value := req.GetValue()
 		ttl := req.GetTtlSeconds()
 
-		err := s.manager.Set(ns, key, value, time.Duration(ttl))
+		err := s.manager.Set(ns, key, value, time.Duration(ttl)*time.Second)
 		if err != nil {
 			return &memapv1.Response{
 				Success:      false,
@@ -35,11 +35,15 @@ func (s *Server) processRequest(req *memapv1.Request) *memapv1.Response {
 		key := req.GetKey()
 
 		value, err := s.manager.Get(ns, key)
-		if err != nil {
+		if err != nil || value == nil {
+			errMsg := "key not found"
+			if err != nil {
+				errMsg = err.Error()
+			}
 			return &memapv1.Response{
 				Success:      false,
 				Value:        "",
-				ErrorMessage: err.Error(),
+				ErrorMessage: errMsg,
 			}
 		}
 		return &memapv1.Response{
