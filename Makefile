@@ -35,13 +35,3 @@ watch:
 			exit 1; \
 		fi; \
 	fi
-
-
-.PHONY: proto-go
-
-proto-go:
-	@mkdir -p ./proto/gen/memapv1/go
-	@protoc --proto_path=proto \
-		--go_out=./proto/gen/memapv1/go \
-		--go_opt=paths=source_relative \
-		proto/*.proto

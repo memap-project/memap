@@ -9,7 +9,7 @@ import (
 	"github.com/dmi3midd/memap/core/ns"
 	"github.com/dmi3midd/protorw"
 
-	memapv1 "github.com/dmi3midd/memap/proto/gen/memapv1/go"
+	memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 )
 
 // TODO: Implement Worker Pool pattern for server

@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	memapv1 "github.com/dmi3midd/memap/proto/gen/memapv1/go"
+	memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 )
 
 func (s *Server) processRequest(req *memapv1.Request) *memapv1.Response {
