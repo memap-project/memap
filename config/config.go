@@ -1,10 +1,10 @@
 package config
 
 type Config struct {
-	Server ServerConfig
+	Server ServerConfig `yaml:"server"`
 }
 
 type ServerConfig struct {
-	Port           int
-	MaxConnections int
+	Port           int `yaml:"port"`
+	MaxConnections int `yaml:"maxConnections"`
 }

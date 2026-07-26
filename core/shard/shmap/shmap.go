@@ -11,7 +11,7 @@ import (
 // ShardedMap is a map that stores shards of data for fast sharded access.
 type ShardedMap struct {
 	mu         sync.RWMutex
-	shardCount int
+	shardCount uint8
 	shards     []*shard.Shard
 }
 

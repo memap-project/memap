@@ -9,7 +9,11 @@ type TypedSyncMap[K comparable, V any] struct {
 
 func (tm *TypedSyncMap[K, V]) Load(key K) (V, bool) {
 	actual, loaded := tm.m.Load(key)
-	return actual.(V), loaded
+	if !loaded {
+		var zero V
+		return zero, false
+	}
+	return actual.(V), true
 }
 
 func (tm *TypedSyncMap[K, V]) Store(key K, value V) {
@@ -18,7 +22,11 @@ func (tm *TypedSyncMap[K, V]) Store(key K, value V) {
 
 func (tm *TypedSyncMap[K, V]) LoadOrStore(key K, value V) (V, bool) {
 	actual, loaded := tm.m.LoadOrStore(key, value)
-	return actual.(V), loaded
+	if !loaded {
+		var zero V
+		return zero, false
+	}
+	return actual.(V), true
 }
 
 func (tm *TypedSyncMap[K, V]) Delete(key K) {
