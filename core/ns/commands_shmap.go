@@ -40,10 +40,10 @@ func (nm *NamespaceManager) Get(ns, key string) (*item.Item, error) {
 
 // [Set] stores an item in the namespace by key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) Set(ns, key, value string, ttl time.Duration) error {
-	var t time.Time
+func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
+	var t int64
 	if ttl > 0 {
-		t = time.Now().Add(ttl * time.Second)
+		t = time.Now().Unix() + ttl
 	}
 
 	item := item.Item{
