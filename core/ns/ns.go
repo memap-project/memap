@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/dmi3midd/memap/core/shard/shhash"
 	"github.com/dmi3midd/memap/core/shard/shmap"
 )
 
@@ -11,6 +12,7 @@ import (
 type Namespace struct {
 	mu     sync.RWMutex
 	shmap  *shmap.ShardedMap
+	shhash *shhash.ShardedHash
 	cancel context.CancelFunc
 }
 
@@ -19,6 +21,7 @@ func NewNamespace() *Namespace {
 	return &Namespace{
 		mu:     sync.RWMutex{},
 		shmap:  shmap.NewShardedMap(),
+		shhash: shhash.NewShardedHash(),
 		cancel: nil,
 	}
 }

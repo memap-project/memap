@@ -9,33 +9,33 @@ import (
 // [Get] retrieves an item from the namespace by key.
 // Returns [ErrKeyNotFound] if the key is not found or expired.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) Get(ns, key string) (*item.Item, error) {
+func (nm *NamespaceManager) Get(ns, key string) (item.Item, error) {
 	if ns == "" {
-		item, ok := nm.defaultNs.shmap.Get(key)
+		i, ok := nm.defaultNs.shmap.Get(key)
 		if !ok {
-			return nil, ErrKeyNotFound
+			return item.Item{}, ErrKeyNotFound
 		}
-		if item.IsExpired() {
+		if i.IsExpired() {
 			nm.defaultNs.shmap.Delete(key)
-			return nil, ErrKeyNotFound
+			return item.Item{}, ErrKeyNotFound
 		}
-		return item, nil
+		return i, nil
 	}
 
 	n, exists := nm.GetNs(ns)
 	if !exists {
-		return nil, ErrNamespaceNotFound
+		return item.Item{}, ErrNamespaceNotFound
 	}
 
-	item, ok := n.shmap.Get(key)
+	i, ok := n.shmap.Get(key)
 	if !ok {
-		return nil, ErrKeyNotFound
+		return item.Item{}, ErrKeyNotFound
 	}
-	if item.IsExpired() {
+	if i.IsExpired() {
 		n.shmap.Delete(key)
-		return nil, ErrKeyNotFound
+		return item.Item{}, ErrKeyNotFound
 	}
-	return item, nil
+	return i, nil
 }
 
 // [Set] stores an item in the namespace by key.

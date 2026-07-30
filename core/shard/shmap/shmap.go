@@ -2,7 +2,6 @@ package shmap
 
 import (
 	"hash/fnv"
-	"sync"
 
 	"github.com/dmi3midd/memap/core/item"
 	"github.com/dmi3midd/memap/core/shard"
@@ -10,16 +9,15 @@ import (
 
 // ShardedMap is a map that stores shards of data for fast sharded access.
 type ShardedMap struct {
-	mu         sync.RWMutex
 	shardCount uint8
-	shards     []*shard.Shard
+	shards     []*shard.Shard[item.Item]
 }
 
 // NewShardedMap creates a new ShardedMap with shardCount shards.
 func NewShardedMap() *ShardedMap {
-	shards := make([]*shard.Shard, 8)
+	shards := make([]*shard.Shard[item.Item], 8)
 	for i := range shards {
-		shards[i] = shard.NewShard()
+		shards[i] = shard.NewShard[item.Item]()
 	}
 	return &ShardedMap{
 		shardCount: 8,
@@ -28,7 +26,7 @@ func NewShardedMap() *ShardedMap {
 }
 
 // getShard returns the shard that the key belongs to.
-func (s *ShardedMap) getShard(key string) *shard.Shard {
+func (s *ShardedMap) getShard(key string) *shard.Shard[item.Item] {
 	h := fnv.New32a()
 	h.Write([]byte(key))
 	idx := h.Sum32() & uint32(s.shardCount-1)
@@ -36,7 +34,7 @@ func (s *ShardedMap) getShard(key string) *shard.Shard {
 }
 
 // Get retrieves an item from the sharded map.
-func (s *ShardedMap) Get(key string) (*item.Item, bool) {
+func (s *ShardedMap) Get(key string) (item.Item, bool) {
 	item, ok := s.getShard(key).Get(key)
 	return item, ok
 }
