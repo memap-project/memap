@@ -13,7 +13,7 @@ type ShardedMap struct {
 	shards     []*shard.Shard[item.Item]
 }
 
-// NewShardedMap creates a new ShardedMap with shardCount shards.
+// NewShardedMap creates a new ShardedMap with default shard count (8).
 func NewShardedMap() *ShardedMap {
 	shards := make([]*shard.Shard[item.Item], 8)
 	for i := range shards {
@@ -34,6 +34,7 @@ func (s *ShardedMap) getShard(key string) *shard.Shard[item.Item] {
 }
 
 // Get retrieves an item from the sharded map.
+// Returns zero value and false if the key doesn't exist.
 func (s *ShardedMap) Get(key string) (item.Item, bool) {
 	item, ok := s.getShard(key).Get(key)
 	return item, ok

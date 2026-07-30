@@ -14,11 +14,12 @@ type Shard[V any] struct {
 func NewShard[V any]() *Shard[V] {
 	return &Shard[V]{
 		mu:    sync.RWMutex{},
-		items: make(map[string]V),
+		items: make(map[string]V, 8),
 	}
 }
 
 // Get retrieves an item from the shard.
+// Returns zero value and false if the key doesn't exist.
 func (s *Shard[V]) Get(key string) (V, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

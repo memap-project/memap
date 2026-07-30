@@ -8,7 +8,7 @@ import (
 )
 
 // NamespaceManager manages multiple namespaces.
-// It contains a typed sync map of namespaces and a system namespace.
+// It contains a typed sync map of namespaces and a default namespace.
 type NamespaceManager struct {
 	mu         sync.RWMutex
 	ctx        context.Context

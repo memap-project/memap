@@ -5,17 +5,21 @@ import (
 	"sync"
 )
 
+// Hash is a thread-safe map with RWMutex.
+// It is used to store string key-value pairs.
 type Hash struct {
 	mu   sync.RWMutex
 	hash map[string]string
 }
 
+// NewHash creates a new thread-safe map.
 func NewHash() *Hash {
 	return &Hash{
-		hash: make(map[string]string),
+		hash: make(map[string]string, 8),
 	}
 }
 
+// GetMap returns a copy of the hash map.
 func (h *Hash) GetMap() map[string]string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -25,6 +29,8 @@ func (h *Hash) GetMap() map[string]string {
 	return cp
 }
 
+// Get retrieves a value for the given key.
+// Returns empty string and false if the key does not exist.
 func (h *Hash) Get(key string) (string, bool) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -35,12 +41,14 @@ func (h *Hash) Get(key string) (string, bool) {
 	return value, true
 }
 
+// Set sets a value for the given key.
 func (h *Hash) Set(key string, value string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.hash[key] = value
 }
 
+// Delete removes a key-value pair from the map.
 func (h *Hash) Delete(key string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()

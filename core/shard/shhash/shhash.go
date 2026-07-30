@@ -31,6 +31,7 @@ func (s *ShardedHash) getShard(key string) *shard.Shard[*Hash] {
 }
 
 // HGet retrieves the hash for the given key.
+// Returns nil and false if the hash does not exist.
 func (s *ShardedHash) HGet(key string) (map[string]string, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
@@ -50,6 +51,7 @@ func (s *ShardedHash) HDelete(key string) {
 }
 
 // HFGet retrieves a value of the field from the hash for the given key and field.
+// Returns empty string and false if the key or field does not exist.
 func (s *ShardedHash) HFGet(key string, field string) (string, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
@@ -67,8 +69,7 @@ func (s *ShardedHash) HFSet(key, field, value string) {
 // HFDelete deletes a field from the hash for the given key and field.
 func (s *ShardedHash) HFDelete(key, field string) {
 	h, ok := s.getShard(key).Get(key)
-	if !ok {
-		return
+	if ok {
+		h.Delete(field)
 	}
-	h.Delete(field)
 }

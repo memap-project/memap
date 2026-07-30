@@ -8,7 +8,7 @@ import (
 	"github.com/dmi3midd/memap/core/shard/shmap"
 )
 
-// Namespace represents a namespace in the memap system.
+// Namespace represents a namespace in the memap.
 type Namespace struct {
 	mu     sync.RWMutex
 	shmap  *shmap.ShardedMap
