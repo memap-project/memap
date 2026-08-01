@@ -3,13 +3,15 @@ package shhash
 import (
 	"maps"
 	"sync"
+	"time"
 )
 
 // Hash is a thread-safe map with RWMutex.
 // It is used to store string key-value pairs.
 type Hash struct {
-	mu   sync.RWMutex
-	hash map[string]string
+	mu        sync.RWMutex
+	hash      map[string]string
+	expiresAt int64
 }
 
 // NewHash creates a new thread-safe map.
@@ -19,8 +21,13 @@ func NewHash() *Hash {
 	}
 }
 
-// GetMap returns a copy of the hash map.
-func (h *Hash) GetMap() map[string]string {
+// IsExpired returns true if the hash is expired.
+func (h *Hash) IsExpired() bool {
+	return h.expiresAt > 0 && h.expiresAt < time.Now().Unix()
+}
+
+// GetCopy returns a copy of the hash map.
+func (h *Hash) GetCopy() map[string]string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 

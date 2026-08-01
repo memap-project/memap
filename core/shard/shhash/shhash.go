@@ -37,7 +37,11 @@ func (s *ShardedHash) HGet(key string) (map[string]string, bool) {
 	if !ok {
 		return nil, false
 	}
-	return h.GetMap(), true
+	if h.IsExpired() {
+		s.getShard(key).Delete(key)
+		return nil, false
+	}
+	return h.GetCopy(), true
 }
 
 // HSet creates empty hash map if not exists.
@@ -55,6 +59,10 @@ func (s *ShardedHash) HDelete(key string) {
 func (s *ShardedHash) HFGet(key string, field string) (string, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
+		return "", false
+	}
+	if h.IsExpired() {
+		s.getShard(key).Delete(key)
 		return "", false
 	}
 	return h.Get(field)
