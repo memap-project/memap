@@ -63,3 +63,19 @@ func (s *Shard[V]) Delete(key string) {
 	defer s.mu.Unlock()
 	delete(s.items, key)
 }
+
+// func (s *Shard[V]) Items() map[string]V {
+// 	s.mu.RLock()
+// 	defer s.mu.RUnlock()
+// 	return s.items
+// }
+
+func (s *Shard[V]) Clean(predicate func(key string, value V) bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for k, v := range s.items {
+		if predicate(k, v) {
+			delete(s.items, k)
+		}
+	}
+}

@@ -49,3 +49,12 @@ func (s *ShardedMap) Set(key string, value item.Item) {
 func (s *ShardedMap) Delete(key string) {
 	s.getShard(key).Delete(key)
 }
+
+// Clean cleans expired items.
+func (s *ShardedMap) Clean() {
+	for _, shard := range s.shards {
+		shard.Clean(func(_ string, item item.Item) bool {
+			return item.IsExpired()
+		})
+	}
+}

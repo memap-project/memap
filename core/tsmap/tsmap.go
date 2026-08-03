@@ -38,3 +38,10 @@ func (tm *TypedSyncMap[K, V]) LoadOrStore(key K, value V) (V, bool) {
 func (tm *TypedSyncMap[K, V]) Delete(key K) {
 	tm.m.Delete(key)
 }
+
+// Range calls the given function for each key-value pair in the typed sync map.
+func (tm *TypedSyncMap[K, V]) Range(f func(key K, value V) bool) {
+	tm.m.Range(func(key, value any) bool {
+		return f(key.(K), value.(V))
+	})
+}

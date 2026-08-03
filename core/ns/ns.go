@@ -1,7 +1,6 @@
 package ns
 
 import (
-	"context"
 	"sync"
 
 	"github.com/dmi3midd/memap/core/shard/shhash"
@@ -13,7 +12,6 @@ type Namespace struct {
 	mu     sync.RWMutex
 	shmap  *shmap.ShardedMap
 	shhash *shhash.ShardedHash
-	cancel context.CancelFunc
 }
 
 // NewNamespace creates a new namespace.
@@ -22,6 +20,11 @@ func NewNamespace() *Namespace {
 		mu:     sync.RWMutex{},
 		shmap:  shmap.NewShardedMap(),
 		shhash: shhash.NewShardedHash(),
-		cancel: nil,
 	}
+}
+
+// Clean cleans expired keys.
+func (n *Namespace) Clean() {
+	n.shmap.Clean()
+	n.shhash.Clean()
 }
