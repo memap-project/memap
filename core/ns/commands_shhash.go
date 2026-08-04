@@ -24,16 +24,16 @@ func (nm *NamespaceManager) HGet(ns, key string) (map[string]string, error) {
 
 // HSet creates an empty hash for the given key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) HSet(ns, key string) error {
+func (nm *NamespaceManager) HSet(ns, key string, ttl int64) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HSet(key)
+		nm.defaultNs.shhash.HSet(key, ttl)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HSet(key)
+	n.shhash.HSet(key, ttl)
 	return nil
 }
 
@@ -77,16 +77,16 @@ func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 // HFSet sets a field in the hash for the given key and field.
 // Creates hash if not exists.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) HFSet(ns, key, field, value string) error {
+func (nm *NamespaceManager) HFSet(ns, key, field, value string, ttl int64) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HFSet(key, field, value)
+		nm.defaultNs.shhash.HFSet(key, field, value, ttl)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HFSet(key, field, value)
+	n.shhash.HFSet(key, field, value, ttl)
 	return nil
 }
 

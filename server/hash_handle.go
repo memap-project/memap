@@ -11,7 +11,7 @@ func (s *Server) handleHGET(req *memapv1.Request) *memapv1.Response {
 }
 
 func (s *Server) handleHSET(req *memapv1.Request) *memapv1.Response {
-	if err := s.manager.HSet(req.GetNamespaceName(), req.GetKey()); err != nil {
+	if err := s.manager.HSet(req.GetNamespaceName(), req.GetKey(), req.GetTtlSeconds()); err != nil {
 		return errResponse(err)
 	}
 	return okEmpty()
@@ -25,7 +25,7 @@ func (s *Server) handleHDEL(req *memapv1.Request) *memapv1.Response {
 }
 
 func (s *Server) handleHFSET(req *memapv1.Request) *memapv1.Response {
-	if err := s.manager.HFSet(req.GetNamespaceName(), req.GetKey(), req.GetField(), req.GetValue()); err != nil {
+	if err := s.manager.HFSet(req.GetNamespaceName(), req.GetKey(), req.GetField(), req.GetValue(), req.GetTtlSeconds()); err != nil {
 		return errResponse(err)
 	}
 	return okEmpty()

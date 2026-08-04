@@ -45,8 +45,11 @@ func (s *ShardedHash) HGet(key string) (map[string]string, bool) {
 }
 
 // HSet creates empty hash map if not exists.
-func (s *ShardedHash) HSet(key string) {
-	s.getShard(key).GetOrInit(key, NewHash)
+func (s *ShardedHash) HSet(key string, ttl int64) {
+	hash, ok := s.getShard(key).GetOrInit(key, NewHash)
+	if !ok {
+		hash.Expire(ttl)
+	}
 }
 
 // HDelete deletes the hash map for the given key.
@@ -69,8 +72,11 @@ func (s *ShardedHash) HFGet(key string, field string) (string, bool) {
 }
 
 // HFSet sets a field in the hash for the given key and field. Creates hash if not exists.
-func (s *ShardedHash) HFSet(key, field, value string) {
-	h := s.getShard(key).GetOrInit(key, NewHash)
+func (s *ShardedHash) HFSet(key, field, value string, ttl int64) {
+	h, ok := s.getShard(key).GetOrInit(key, NewHash)
+	if !ok {
+		h.Expire(ttl)
+	}
 	h.Set(field, value)
 }
 

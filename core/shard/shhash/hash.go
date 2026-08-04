@@ -23,7 +23,20 @@ func NewHash() *Hash {
 
 // IsExpired returns true if the hash is expired.
 func (h *Hash) IsExpired() bool {
-	return h.expiresAt > 0 && h.expiresAt < time.Now().Unix()
+	if h.expiresAt == 0 {
+		return false
+	}
+	return time.Now().Unix() > h.expiresAt
+}
+
+// Expire sets the expiration time for the hash.
+func (h *Hash) Expire(ttl int64) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.expiresAt > 0 || h.IsExpired() {
+		return
+	}
+	h.expiresAt = time.Now().Unix() + ttl
 }
 
 // GetCopy returns a copy of the hash map.

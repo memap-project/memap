@@ -32,22 +32,23 @@ func (s *Shard[V]) Get(key string) (V, bool) {
 }
 
 // GetOrInit retrieves an item from the shard, or initializes and stores a new item if it does not exist.
-func (s *Shard[V]) GetOrInit(key string, initFn func() V) V {
+// Returns true if the item was retrieved, false if it was initialized.
+func (s *Shard[V]) GetOrInit(key string, initFn func() V) (V, bool) {
 	s.mu.RLock()
 	val, ok := s.items[key]
 	s.mu.RUnlock()
 	if ok {
-		return val
+		return val, true
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if val, ok = s.items[key]; ok {
-		return val
+		return val, true
 	}
 	val = initFn()
 	s.items[key] = val
-	return val
+	return val, false
 }
 
 // Set sets or updates an item in the shard.
