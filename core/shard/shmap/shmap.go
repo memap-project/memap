@@ -36,8 +36,11 @@ func (s *ShardedMap) getShard(key string) *shard.Shard[item.Item] {
 // Get retrieves an item from the sharded map.
 // Returns zero value and false if the key doesn't exist.
 func (s *ShardedMap) Get(key string) (item.Item, bool) {
-	item, ok := s.getShard(key).Get(key)
-	return item, ok
+	i, ok := s.getShard(key).Get(key)
+	if i.IsExpired() {
+		return item.Item{}, false
+	}
+	return i, ok
 }
 
 // Set sets or updates an item in the sharded map.

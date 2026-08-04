@@ -15,10 +15,6 @@ func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 		if !ok {
 			return "", ErrKeyNotFound
 		}
-		if i.IsExpired() {
-			nm.defaultNs.shmap.Delete(key)
-			return "", ErrKeyNotFound
-		}
 		return i.Value, nil
 	}
 
@@ -29,10 +25,6 @@ func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 
 	i, ok := n.shmap.Get(key)
 	if !ok {
-		return "", ErrKeyNotFound
-	}
-	if i.IsExpired() {
-		n.shmap.Delete(key)
 		return "", ErrKeyNotFound
 	}
 	return i.Value, nil
