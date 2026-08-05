@@ -16,3 +16,10 @@ func (i *Item) IsExpired() bool {
 	}
 	return time.Now().Unix() > i.ExpiresAt
 }
+
+func (i *Item) Expire(ttl int64) {
+	if i.ExpiresAt > 0 || i.IsExpired() {
+		return
+	}
+	i.ExpiresAt = time.Now().Unix() + ttl
+}

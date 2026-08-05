@@ -72,11 +72,8 @@ func (s *ShardedHash) HFGet(key string, field string) (string, bool) {
 }
 
 // HFSet sets a field in the hash for the given key and field. Creates hash if not exists.
-func (s *ShardedHash) HFSet(key, field, value string, ttl int64) {
-	h, ok := s.getShard(key).GetOrInit(key, NewHash)
-	if !ok {
-		h.Expire(ttl)
-	}
+func (s *ShardedHash) HFSet(key, field, value string) {
+	h, _ := s.getShard(key).GetOrInit(key, NewHash)
 	h.Set(field, value)
 }
 
@@ -85,6 +82,14 @@ func (s *ShardedHash) HFDelete(key, field string) {
 	h, ok := s.getShard(key).Get(key)
 	if ok {
 		h.Delete(field)
+	}
+}
+
+// HExpire expires the hash for the given key.
+func (s *ShardedHash) HExpire(key string, ttl int64) {
+	h, ok := s.getShard(key).Get(key)
+	if ok {
+		h.Expire(ttl)
 	}
 }
 

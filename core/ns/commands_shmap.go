@@ -72,3 +72,22 @@ func (nm *NamespaceManager) Delete(ns, key string) error {
 	n.shmap.Delete(key)
 	return nil
 }
+
+func (nm *NamespaceManager) Expire(ns, key string, ttl int64) error {
+	if ns == "" {
+		if ok := nm.defaultNs.shmap.Expire(key, ttl); !ok {
+			return ErrKeyNotFound
+		}
+		return nil
+	}
+
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return ErrNamespaceNotFound
+	}
+
+	if ok := n.shmap.Expire(key, ttl); !ok {
+		return ErrKeyNotFound
+	}
+	return nil
+}

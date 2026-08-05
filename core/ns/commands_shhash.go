@@ -52,6 +52,19 @@ func (nm *NamespaceManager) HDelete(ns, key string) error {
 	return nil
 }
 
+func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
+	if ns == "" {
+		nm.defaultNs.shhash.HExpire(key, ttl)
+		return nil
+	}
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return ErrNamespaceNotFound
+	}
+	n.shhash.HExpire(key, ttl)
+	return nil
+}
+
 // HFGet retrieves a field from the hash for the given key and field.
 // Returns [ErrKeyNotFound] if the key or field does not exist.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
@@ -77,16 +90,16 @@ func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 // HFSet sets a field in the hash for the given key and field.
 // Creates hash if not exists.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) HFSet(ns, key, field, value string, ttl int64) error {
+func (nm *NamespaceManager) HFSet(ns, key, field, value string) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HFSet(key, field, value, ttl)
+		nm.defaultNs.shhash.HFSet(key, field, value)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HFSet(key, field, value, ttl)
+	n.shhash.HFSet(key, field, value)
 	return nil
 }
 

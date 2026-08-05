@@ -24,3 +24,10 @@ func (s *Server) handleDEL(req *memapv1.Request) *memapv1.Response {
 	}
 	return okEmpty()
 }
+
+func (s *Server) handleEXPIRE(req *memapv1.Request) *memapv1.Response {
+	if err := s.manager.Expire(req.GetNamespaceName(), req.GetKey(), req.GetTtlSeconds()); err != nil {
+		return errResponse(err)
+	}
+	return okEmpty()
+}

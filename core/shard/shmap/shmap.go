@@ -33,14 +33,29 @@ func (s *ShardedMap) getShard(key string) *shard.Shard[item.Item] {
 	return s.shards[idx]
 }
 
+// Expire sets expiration time for the key if it exists and is not expired.
+func (s *ShardedMap) Expire(key string, ttl int64) bool {
+	return s.getShard(key).Update(key, func(it *item.Item) bool {
+		if it.IsExpired() {
+			return false
+		}
+		it.Expire(ttl)
+		return true
+	})
+}
+
 // Get retrieves an item from the sharded map.
 // Returns zero value and false if the key doesn't exist.
 func (s *ShardedMap) Get(key string) (item.Item, bool) {
 	i, ok := s.getShard(key).Get(key)
-	if i.IsExpired() {
+	if !ok {
 		return item.Item{}, false
 	}
-	return i, ok
+	if i.IsExpired() {
+		s.getShard(key).Delete(key)
+		return item.Item{}, false
+	}
+	return i, true
 }
 
 // Set sets or updates an item in the sharded map.

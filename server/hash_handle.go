@@ -24,8 +24,15 @@ func (s *Server) handleHDEL(req *memapv1.Request) *memapv1.Response {
 	return okEmpty()
 }
 
+func (s *Server) handleHEXPIRE(req *memapv1.Request) *memapv1.Response {
+	if err := s.manager.HExpire(req.GetNamespaceName(), req.GetKey(), req.GetTtlSeconds()); err != nil {
+		return errResponse(err)
+	}
+	return okEmpty()
+}
+
 func (s *Server) handleHFSET(req *memapv1.Request) *memapv1.Response {
-	if err := s.manager.HFSet(req.GetNamespaceName(), req.GetKey(), req.GetField(), req.GetValue(), req.GetTtlSeconds()); err != nil {
+	if err := s.manager.HFSet(req.GetNamespaceName(), req.GetKey(), req.GetField(), req.GetValue()); err != nil {
 		return errResponse(err)
 	}
 	return okEmpty()

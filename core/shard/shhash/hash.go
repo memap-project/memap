@@ -17,12 +17,15 @@ type Hash struct {
 // NewHash creates a new thread-safe map.
 func NewHash() *Hash {
 	return &Hash{
-		hash: make(map[string]string, 8),
+		hash:      make(map[string]string, 8),
+		expiresAt: 0,
 	}
 }
 
 // IsExpired returns true if the hash is expired.
 func (h *Hash) IsExpired() bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
 	if h.expiresAt == 0 {
 		return false
 	}
@@ -33,7 +36,7 @@ func (h *Hash) IsExpired() bool {
 func (h *Hash) Expire(ttl int64) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if h.expiresAt > 0 || h.IsExpired() {
+	if h.expiresAt > 0 || (h.expiresAt > 0 && time.Now().Unix() > h.expiresAt) {
 		return
 	}
 	h.expiresAt = time.Now().Unix() + ttl
