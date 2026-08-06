@@ -1,5 +1,15 @@
 .PHONY: build clean run watch
 
+# Test the application without caching
+test:
+	@echo "Testing..."
+	@go test -count=1 ./...
+
+# Test with caching
+test-cache:
+	@echo "Testing with caching..."
+	@go test ./...
+
 # Build the application
 build:
 	@echo "Building..."
