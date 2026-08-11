@@ -57,6 +57,53 @@ func (s *ShardedHash) HDelete(key string) {
 	s.getShard(key).Delete(key)
 }
 
+// HExpire expires the hash for the given key.
+func (s *ShardedHash) HExpire(key string, ttl int64) {
+	h, ok := s.getShard(key).Get(key)
+	if ok {
+		h.Expire(ttl)
+	}
+}
+
+func (s *ShardedHash) HTTL(key string) int64 {
+	h, ok := s.getShard(key).Get(key)
+	if !ok {
+		return 0
+	}
+	return h.LeftTime()
+}
+
+// HExists returns true if the hash for the given key exists.
+func (s *ShardedHash) HExists(key string) bool {
+	_, ok := s.getShard(key).Get(key)
+	return ok
+}
+
+// HLEN returns the number of fields in the hash for the given key.
+func (s *ShardedHash) HLen(key string) int64 {
+	h, ok := s.getShard(key).Get(key)
+	if !ok {
+		return 0
+	}
+	return h.Len()
+}
+
+func (s *ShardedHash) HKeys(key string) []string {
+	h, ok := s.getShard(key).Get(key)
+	if !ok {
+		return nil
+	}
+	return h.Keys()
+}
+
+func (s *ShardedHash) HValues(key string) []string {
+	h, ok := s.getShard(key).Get(key)
+	if !ok {
+		return nil
+	}
+	return h.Values()
+}
+
 // HFGet retrieves a value of the field from the hash for the given key and field.
 // Returns empty string and false if the key or field does not exist.
 func (s *ShardedHash) HFGet(key string, field string) (string, bool) {
@@ -82,14 +129,6 @@ func (s *ShardedHash) HFDelete(key, field string) {
 	h, ok := s.getShard(key).Get(key)
 	if ok {
 		h.Delete(field)
-	}
-}
-
-// HExpire expires the hash for the given key.
-func (s *ShardedHash) HExpire(key string, ttl int64) {
-	h, ok := s.getShard(key).Get(key)
-	if ok {
-		h.Expire(ttl)
 	}
 }
 

@@ -65,6 +65,65 @@ func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
 	return nil
 }
 
+// HTTL returns the time-to-live of the hash for the given key.
+// Returns 0 if the key does not exist or has no TTL.
+func (nm *NamespaceManager) HTTL(ns, key string) (int64, error) {
+	if ns == "" {
+		return nm.defaultNs.shhash.HTTL(key), nil
+	}
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return 0, ErrNamespaceNotFound
+	}
+	return n.shhash.HTTL(key), nil
+}
+
+func (nm *NamespaceManager) HExists(ns, key string) bool {
+	if ns == "" {
+		return nm.defaultNs.shhash.HExists(key)
+	}
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return false
+	}
+	return n.shhash.HExists(key)
+}
+
+// HLEN returns the number of fields in the hash for the given key.
+func (nm *NamespaceManager) HLen(ns, key string) int64 {
+	if ns == "" {
+		return nm.defaultNs.shhash.HLen(key)
+	}
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return 0
+	}
+	return n.shhash.HLen(key)
+}
+
+func (nm *NamespaceManager) HKeys(ns, key string) []string {
+	if ns == "" {
+		return nm.defaultNs.shhash.HKeys(key)
+	}
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return nil
+	}
+	return n.shhash.HKeys(key)
+}
+
+// HValues returns the values of the hash for the given key.
+func (nm *NamespaceManager) HValues(ns, key string) []string {
+	if ns == "" {
+		return nm.defaultNs.shhash.HValues(key)
+	}
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return nil
+	}
+	return n.shhash.HValues(key)
+}
+
 // HFGet retrieves a field from the hash for the given key and field.
 // Returns [ErrKeyNotFound] if the key or field does not exist.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.

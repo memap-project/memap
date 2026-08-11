@@ -42,6 +42,15 @@ func (h *Hash) Expire(ttl int64) {
 	h.expiresAt = time.Now().Unix() + ttl
 }
 
+func (h *Hash) LeftTime() int64 {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	if h.expiresAt == 0 {
+		return 0
+	}
+	return h.expiresAt - time.Now().Unix()
+}
+
 // GetCopy returns a copy of the hash map.
 func (h *Hash) GetCopy() map[string]string {
 	h.mu.RLock()
@@ -76,4 +85,32 @@ func (h *Hash) Delete(key string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	delete(h.hash, key)
+}
+
+// Len returns the number of key-value pairs in the map.
+func (h *Hash) Len() int64 {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return int64(len(h.hash))
+}
+
+// Keys returns a slice of all keys in the hash.
+func (h *Hash) Keys() []string {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	keys := make([]string, 0, len(h.hash))
+	for k := range h.hash {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func (h *Hash) Values() []string {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	values := make([]string, 0, len(h.hash))
+	for _, v := range h.hash {
+		values = append(values, v)
+	}
+	return values
 }
