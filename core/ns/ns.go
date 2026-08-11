@@ -28,3 +28,9 @@ func (n *Namespace) Clean() {
 	n.shmap.Clean()
 	n.shhash.Clean()
 }
+
+// Flush removes all keys from the namespace.
+func (n *Namespace) Flush() {
+	n.shmap.Flush()
+	n.shhash.Flush()
+}

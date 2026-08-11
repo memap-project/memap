@@ -76,3 +76,10 @@ func (s *ShardedMap) Clean() {
 		})
 	}
 }
+
+// Flush removes all items from the shard.
+func (s *ShardedMap) Flush() {
+	for _, shard := range s.shards {
+		shard.Flush()
+	}
+}

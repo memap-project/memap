@@ -101,3 +101,10 @@ func (s *ShardedHash) Clean() {
 		})
 	}
 }
+
+// Flush removes all hashes from the shard.
+func (s *ShardedHash) Flush() {
+	for _, shard := range s.shards {
+		shard.Flush()
+	}
+}

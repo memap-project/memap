@@ -82,6 +82,9 @@ func (s *Shard[V]) Update(key string, fn func(val *V) bool) bool {
 	return false
 }
 
+// Clean cleans items from the shard based on a predicate function.
+// The predicate function receives the key and value and should return true if the item should be deleted.
+// This operation acquires a write lock for the entire duration.
 func (s *Shard[V]) Clean(predicate func(key string, value V) bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -90,4 +93,11 @@ func (s *Shard[V]) Clean(predicate func(key string, value V) bool) {
 			delete(s.items, k)
 		}
 	}
+}
+
+// Flush removes all items from the shard.
+func (s *Shard[V]) Flush() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.items = make(map[string]V, 8)
 }

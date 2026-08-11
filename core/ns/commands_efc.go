@@ -1,14 +1,32 @@
 package ns
 
-// Drop drops all keys and namespaces.
-// func (nm *NamespaceManager) Drop() error {
-// 	return nil
-// }
+// Erase drops all keys and namespaces.
+func (nm *NamespaceManager) Erase() {
+	nm.mu.Lock()
+	defer nm.mu.Unlock()
+	nm.Flush()
+	nm.namespaces.Range(func(k string, _ *Namespace) bool {
+		nm.namespaces.Delete(k)
+		return true
+	})
+}
 
 // Flush flushes all keys in all namespaces.
-// func (nm *NamespaceManager) Flush() error {
-// 	return nil
-// }
+func (nm *NamespaceManager) Flush() {
+	nm.flushDefaultNs()
+	nm.flushCustomNamespaces()
+}
+
+func (nm *NamespaceManager) flushDefaultNs() {
+	nm.defaultNs.Flush()
+}
+
+func (nm *NamespaceManager) flushCustomNamespaces() {
+	nm.namespaces.Range(func(k string, v *Namespace) bool {
+		v.Flush()
+		return true
+	})
+}
 
 // Clean cleans all expired keys in all namespaces.
 func (nm *NamespaceManager) Clean() {
