@@ -6,7 +6,7 @@ import (
 	"github.com/memap-project/memap/core/item"
 )
 
-// [Get] retrieves an item from the namespace by key.
+// Get retrieves an item from the namespace by key.
 // Returns [ErrKeyNotFound] if the key is not found or expired.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Get(ns, key string) (string, error) {
@@ -30,7 +30,7 @@ func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 	return i.Value, nil
 }
 
-// [Set] stores an item in the namespace by key.
+// Set stores an item in the namespace by key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
 	var t int64
@@ -57,7 +57,7 @@ func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
 	return nil
 }
 
-// [Delete] removes an item from the namespace by key.
+// Delete removes an item from the namespace by key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Delete(ns, key string) error {
 	if ns == "" {
@@ -90,4 +90,18 @@ func (nm *NamespaceManager) Expire(ns, key string, ttl int64) error {
 		return ErrKeyNotFound
 	}
 	return nil
+}
+
+// TTL returns the time-to-live of the item in the namespace by key.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+func (nm *NamespaceManager) TTL(ns, key string) (int64, error) {
+	if ns == "" {
+		return nm.defaultNs.shmap.TTL(key), nil
+	}
+
+	n, exists := nm.GetNs(ns)
+	if !exists {
+		return 0, ErrNamespaceNotFound
+	}
+	return n.shmap.TTL(key), nil
 }
