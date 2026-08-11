@@ -132,8 +132,8 @@ func (s *ShardedHash) HFDelete(key, field string) {
 	}
 }
 
-// Clean cleans expired hashes.
-func (s *ShardedHash) Clean() {
+// CleanExpired cleans expired hashes.
+func (s *ShardedHash) CleanExpired() {
 	for _, shard := range s.shards {
 		shard.Clean(func(_ string, h *Hash) bool {
 			return h.IsExpired()

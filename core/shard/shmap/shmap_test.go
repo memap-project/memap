@@ -71,7 +71,7 @@ func TestShmap_Clean(t *testing.T) {
 	shmap.Set("key5", i)
 	shmap.Set("key55", i)
 	shmap.Set("key555", i)
-	shmap.Clean()
+	shmap.CleanExpired()
 	result1, ok1 := shmap.Get("key5")
 	result2, ok2 := shmap.Get("key55")
 	result3, ok3 := shmap.Get("key555")

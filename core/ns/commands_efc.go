@@ -28,21 +28,21 @@ func (nm *NamespaceManager) flushCustomNamespaces() {
 	})
 }
 
-// Clean cleans all expired keys in all namespaces.
-func (nm *NamespaceManager) Clean() {
+// CleanExpired cleans all expired keys in all namespaces.
+func (nm *NamespaceManager) CleanExpired() {
 	nm.cleanDefaultNs()
 	nm.cleanCustomNamespaces()
 }
 
 // cleanDefaultNs cleans all expired keys in the default namespace.
 func (nm *NamespaceManager) cleanDefaultNs() {
-	nm.defaultNs.Clean()
+	nm.defaultNs.CleanExpired()
 }
 
 // cleanCustomNamespaces cleans all expired keys in all namespaces except default.
 func (nm *NamespaceManager) cleanCustomNamespaces() {
 	nm.namespaces.Range(func(k string, v *Namespace) bool {
-		v.Clean()
+		v.CleanExpired()
 		return true
 	})
 }

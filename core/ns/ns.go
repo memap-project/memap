@@ -23,10 +23,10 @@ func NewNamespace() *Namespace {
 	}
 }
 
-// Clean cleans expired keys.
-func (n *Namespace) Clean() {
-	n.shmap.Clean()
-	n.shhash.Clean()
+// CleanExpired cleans expired keys.
+func (n *Namespace) CleanExpired() {
+	n.shmap.CleanExpired()
+	n.shhash.CleanExpired()
 }
 
 // Flush removes all keys from the namespace.

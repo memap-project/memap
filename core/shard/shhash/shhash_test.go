@@ -110,7 +110,7 @@ func TestShHash_Clean(t *testing.T) {
 	shh := NewShardedHash()
 	shh.HFSet("hash01", "filed01", "value01")
 	shh.HFSet("hash02", "filed02", "value02")
-	shh.Clean()
+	shh.CleanExpired()
 
 	result, ok := shh.HFGet("hash01", "filed01")
 	require.True(t, ok)

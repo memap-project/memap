@@ -76,8 +76,8 @@ func (s *ShardedMap) TTL(key string) int64 {
 	return i.LeftTime()
 }
 
-// Clean cleans expired items.
-func (s *ShardedMap) Clean() {
+// CleanExpired cleans expired items.
+func (s *ShardedMap) CleanExpired() {
 	for _, shard := range s.shards {
 		shard.Clean(func(_ string, item item.Item) bool {
 			return item.IsExpired()

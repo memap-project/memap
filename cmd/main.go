@@ -19,7 +19,7 @@ func main() {
 
 	ctx := context.Background()
 	manager := ns.NewNamespaceManager()
-	cleaner := clean.NewCleaner(ctx, cfg.Core.CleanerInterval, manager.Clean)
+	cleaner := clean.NewCleaner(ctx, cfg.Core.CleanerInterval, manager.CleanExpired)
 	cleaner.Start()
 	defer cleaner.Stop()
 
