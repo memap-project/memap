@@ -5,9 +5,9 @@ import (
 	"io"
 	"net"
 
-	"github.com/dmi3midd/memap/config"
-	"github.com/dmi3midd/memap/core/ns"
 	"github.com/dmi3midd/protorw"
+	"github.com/memap-project/memap/config"
+	"github.com/memap-project/memap/core/ns"
 
 	memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 )

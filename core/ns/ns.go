@@ -3,8 +3,8 @@ package ns
 import (
 	"sync"
 
-	"github.com/dmi3midd/memap/core/shard/shhash"
-	"github.com/dmi3midd/memap/core/shard/shmap"
+	"github.com/memap-project/memap/core/shard/shhash"
+	"github.com/memap-project/memap/core/shard/shmap"
 )
 
 // Namespace represents a namespace in the memap.

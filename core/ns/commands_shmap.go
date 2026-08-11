@@ -3,7 +3,7 @@ package ns
 import (
 	"time"
 
-	"github.com/dmi3midd/memap/core/item"
+	"github.com/memap-project/memap/core/item"
 )
 
 // [Get] retrieves an item from the namespace by key.

@@ -3,7 +3,7 @@ package shhash
 import (
 	"hash/fnv"
 
-	"github.com/dmi3midd/memap/core/shard"
+	"github.com/memap-project/memap/core/shard"
 )
 
 type ShardedHash struct {

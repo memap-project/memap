@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dmi3midd/memap/core/item"
+	"github.com/memap-project/memap/core/item"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

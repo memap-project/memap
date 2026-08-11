@@ -3,7 +3,7 @@ package ns
 import (
 	"sync"
 
-	"github.com/dmi3midd/memap/core/tsmap"
+	"github.com/memap-project/memap/core/tsmap"
 )
 
 // NamespaceManager manages multiple namespaces.

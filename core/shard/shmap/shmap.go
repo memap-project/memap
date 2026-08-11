@@ -3,8 +3,8 @@ package shmap
 import (
 	"hash/fnv"
 
-	"github.com/dmi3midd/memap/core/item"
-	"github.com/dmi3midd/memap/core/shard"
+	"github.com/memap-project/memap/core/item"
+	"github.com/memap-project/memap/core/shard"
 )
 
 // ShardedMap is a map that stores shards of data for fast sharded access.

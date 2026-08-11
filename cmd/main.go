@@ -4,10 +4,10 @@ import (
 	"context"
 	"log"
 
-	"github.com/dmi3midd/memap/config"
-	"github.com/dmi3midd/memap/core/clean"
-	"github.com/dmi3midd/memap/core/ns"
-	"github.com/dmi3midd/memap/server"
+	"github.com/memap-project/memap/config"
+	"github.com/memap-project/memap/core/clean"
+	"github.com/memap-project/memap/core/ns"
+	"github.com/memap-project/memap/server"
 )
 
 func main() {
