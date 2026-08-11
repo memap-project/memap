@@ -15,3 +15,13 @@ func (s *Server) handleDELETE_NS(req *memapv1.Request) *memapv1.Response {
 	}
 	return okEmpty()
 }
+
+func (s *Server) handleERASE(_ *memapv1.Request) *memapv1.Response {
+	s.manager.Erase()
+	return okEmpty()
+}
+
+func (s *Server) handleFLUSH(_ *memapv1.Request) *memapv1.Response {
+	s.manager.Flush()
+	return okEmpty()
+}

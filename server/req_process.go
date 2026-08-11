@@ -9,6 +9,8 @@ type commandHandler func(s *Server, req *memapv1.Request) *memapv1.Response
 var commandHandlers = map[memapv1.CommandType]commandHandler{
 	memapv1.CommandType_CREATE_NS: (*Server).handleCREATE_NS,
 	memapv1.CommandType_DELETE_NS: (*Server).handleDELETE_NS,
+	memapv1.CommandType_ERASE:     (*Server).handleERASE,
+	memapv1.CommandType_FLUSH:     (*Server).handleFLUSH,
 	memapv1.CommandType_SET:       (*Server).handleSET,
 	memapv1.CommandType_GET:       (*Server).handleGET,
 	memapv1.CommandType_DEL:       (*Server).handleDEL,
