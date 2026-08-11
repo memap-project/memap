@@ -78,50 +78,50 @@ func (nm *NamespaceManager) HTTL(ns, key string) (int64, error) {
 	return n.shhash.HTTL(key), nil
 }
 
-func (nm *NamespaceManager) HExists(ns, key string) bool {
+func (nm *NamespaceManager) HExists(ns, key string) (bool, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HExists(key)
+		return nm.defaultNs.shhash.HExists(key), nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
-		return false
+		return false, ErrNamespaceNotFound
 	}
-	return n.shhash.HExists(key)
+	return n.shhash.HExists(key), nil
 }
 
 // HLEN returns the number of fields in the hash for the given key.
-func (nm *NamespaceManager) HLen(ns, key string) int64 {
+func (nm *NamespaceManager) HLen(ns, key string) (int64, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HLen(key)
+		return nm.defaultNs.shhash.HLen(key), nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
-		return 0
+		return 0, ErrNamespaceNotFound
 	}
-	return n.shhash.HLen(key)
+	return n.shhash.HLen(key), nil
 }
 
-func (nm *NamespaceManager) HKeys(ns, key string) []string {
+func (nm *NamespaceManager) HKeys(ns, key string) ([]string, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HKeys(key)
+		return nm.defaultNs.shhash.HKeys(key), nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
-		return nil
+		return []string{}, ErrNamespaceNotFound
 	}
-	return n.shhash.HKeys(key)
+	return n.shhash.HKeys(key), nil
 }
 
 // HValues returns the values of the hash for the given key.
-func (nm *NamespaceManager) HValues(ns, key string) []string {
+func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HValues(key)
+		return nm.defaultNs.shhash.HValues(key), nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
-		return nil
+		return nil, ErrNamespaceNotFound
 	}
-	return n.shhash.HValues(key)
+	return n.shhash.HValues(key), nil
 }
 
 // HFGet retrieves a field from the hash for the given key and field.

@@ -7,7 +7,7 @@ require gopkg.in/yaml.v3 v3.0.1
 require github.com/dmi3midd/protorw v0.0.0-20260728160839-7774d9725db1
 
 require (
-	github.com/memap-project/memap-proto v0.0.0-20260811152207-902f526c5c82
+	github.com/memap-project/memap-proto v0.0.0-20260811202227-b1928861d1c6
 	github.com/stretchr/testify v1.11.1
 )
 

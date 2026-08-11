@@ -31,3 +31,11 @@ func (s *Server) handleEXPIRE(req *memapv1.Request) *memapv1.Response {
 	}
 	return okEmpty()
 }
+
+func (s *Server) handleTTL(req *memapv1.Request) *memapv1.Response {
+	ttl, err := s.manager.TTL(req.GetNamespaceName(), req.GetKey())
+	if err != nil {
+		return errResponse(err)
+	}
+	return okIntValue(ttl)
+}
