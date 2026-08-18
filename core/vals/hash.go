@@ -1,4 +1,4 @@
-package shhash
+package vals
 
 import (
 	"maps"
@@ -32,16 +32,22 @@ func (h *Hash) IsExpired() bool {
 	return time.Now().Unix() > h.expiresAt
 }
 
-// Expire sets the expiration time for the hash.
-func (h *Hash) Expire(ttl int64) {
+// Expire sets or updates the expiration time for the hash.
+func (h *Hash) Expire(ttl int64) bool {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if h.expiresAt > 0 || (h.expiresAt > 0 && time.Now().Unix() > h.expiresAt) {
-		return
+	if h.IsExpired() {
+		return false
+	}
+	if ttl <= 0 {
+		h.expiresAt = 0
+		return true
 	}
 	h.expiresAt = time.Now().Unix() + ttl
+	return true
 }
 
+// LeftTime returns the remaining time until the hash expires.
 func (h *Hash) LeftTime() int64 {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -73,7 +79,7 @@ func (h *Hash) Get(key string) (string, bool) {
 	return value, true
 }
 
-// Set sets a value for the given key.
+// Set sets or updates a value for the given key.
 func (h *Hash) Set(key string, value string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()

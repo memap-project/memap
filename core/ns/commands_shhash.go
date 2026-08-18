@@ -7,17 +7,17 @@ func (nm *NamespaceManager) HGet(ns, key string) (map[string]string, error) {
 	if ns == "" {
 		v, ok := nm.defaultNs.shhash.HGet(key)
 		if !ok {
-			return nil, ErrKeyNotFound
+			return v, ErrKeyNotFound
 		}
 		return v, nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
-		return nil, ErrNamespaceNotFound
+		return map[string]string{}, ErrNamespaceNotFound
 	}
 	v, ok := n.shhash.HGet(key)
 	if !ok {
-		return nil, ErrKeyNotFound
+		return v, ErrKeyNotFound
 	}
 	return v, nil
 }
@@ -54,14 +54,20 @@ func (nm *NamespaceManager) HDelete(ns, key string) error {
 
 func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HExpire(key, ttl)
+		ok := nm.defaultNs.shhash.HExpire(key, ttl)
+		if !ok {
+			return ErrKeyNotFound
+		}
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HExpire(key, ttl)
+	ok := n.shhash.HExpire(key, ttl)
+	if !ok {
+		return ErrKeyNotFound
+	}
 	return nil
 }
 
@@ -92,36 +98,60 @@ func (nm *NamespaceManager) HExists(ns, key string) (bool, error) {
 // HLEN returns the number of fields in the hash for the given key.
 func (nm *NamespaceManager) HLen(ns, key string) (int64, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HLen(key), nil
+		len, ok := nm.defaultNs.shhash.HLen(key)
+		if !ok {
+			return len, ErrKeyNotFound
+		}
+		return len, nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	return n.shhash.HLen(key), nil
+	len, ok := n.shhash.HLen(key)
+	if !ok {
+		return len, ErrKeyNotFound
+	}
+	return len, nil
 }
 
 func (nm *NamespaceManager) HKeys(ns, key string) ([]string, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HKeys(key), nil
+		keys, ok := nm.defaultNs.shhash.HKeys(key)
+		if !ok {
+			return keys, ErrKeyNotFound
+		}
+		return keys, nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return []string{}, ErrNamespaceNotFound
 	}
-	return n.shhash.HKeys(key), nil
+	keys, ok := n.shhash.HKeys(key)
+	if !ok {
+		return keys, ErrKeyNotFound
+	}
+	return keys, nil
 }
 
 // HValues returns the values of the hash for the given key.
 func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HValues(key), nil
+		values, ok := nm.defaultNs.shhash.HValues(key)
+		if !ok {
+			return values, ErrKeyNotFound
+		}
+		return values, nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
-		return nil, ErrNamespaceNotFound
+		return []string{}, ErrNamespaceNotFound
 	}
-	return n.shhash.HValues(key), nil
+	values, ok := n.shhash.HValues(key)
+	if !ok {
+		return values, ErrKeyNotFound
+	}
+	return values, nil
 }
 
 // HFGet retrieves a field from the hash for the given key and field.
@@ -131,7 +161,7 @@ func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 	if ns == "" {
 		v, ok := nm.defaultNs.shhash.HFGet(key, field)
 		if !ok {
-			return "", ErrKeyNotFound
+			return v, ErrKeyNotFound
 		}
 		return v, nil
 	}
@@ -141,7 +171,7 @@ func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 	}
 	v, ok := n.shhash.HFGet(key, field)
 	if !ok {
-		return "", ErrKeyNotFound
+		return v, ErrKeyNotFound
 	}
 	return v, nil
 }

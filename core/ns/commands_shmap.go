@@ -1,21 +1,15 @@
 package ns
 
-import (
-	"time"
-
-	"github.com/memap-project/memap/core/item"
-)
-
 // Get retrieves an item from the namespace by key.
 // Returns [ErrKeyNotFound] if the key is not found or expired.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 	if ns == "" {
-		i, ok := nm.defaultNs.shmap.Get(key)
+		val, ok := nm.defaultNs.shmap.Get(key)
 		if !ok {
 			return "", ErrKeyNotFound
 		}
-		return i.Value, nil
+		return val, nil
 	}
 
 	n, exists := nm.GetNs(ns)
@@ -23,28 +17,18 @@ func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 		return "", ErrNamespaceNotFound
 	}
 
-	i, ok := n.shmap.Get(key)
+	val, ok := n.shmap.Get(key)
 	if !ok {
 		return "", ErrKeyNotFound
 	}
-	return i.Value, nil
+	return val, nil
 }
 
 // Set stores an item in the namespace by key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
-	var t int64
-	if ttl > 0 {
-		t = time.Now().Unix() + ttl
-	}
-
-	item := item.Item{
-		Value:     value,
-		ExpiresAt: t,
-	}
-
 	if ns == "" {
-		nm.defaultNs.shmap.Set(key, item)
+		nm.defaultNs.shmap.Set(key, value, ttl)
 		return nil
 	}
 
@@ -53,7 +37,7 @@ func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
 		return ErrNamespaceNotFound
 	}
 
-	n.shmap.Set(key, item)
+	n.shmap.Set(key, value, ttl)
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package shcounter
+package vals
 
 import (
 	"sync"
@@ -36,7 +36,7 @@ func (c *Counter) IsExpired() bool {
 func (c *Counter) Expire(ttl int64) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.expiresAt > 0 || (c.expiresAt > 0 && time.Now().Unix() > c.expiresAt) {
+	if time.Now().Unix() > c.expiresAt {
 		return false
 	}
 	c.expiresAt = time.Now().Unix() + ttl
@@ -61,8 +61,15 @@ func (c *Counter) SetLimit(limit int64) {
 	c.limit = limit
 }
 
-// Val returns the current value of the counter.
-func (c *Counter) Val() int64 {
+// GetLimit returns the limit of the counter.
+func (c *Counter) GetLimit() int64 {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.limit
+}
+
+// GetValue returns the current value of the counter.
+func (c *Counter) GetValue() int64 {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.value
@@ -90,4 +97,11 @@ func (c *Counter) Decr(alpha int64) bool {
 		return true
 	}
 	return false
+}
+
+// Reset resets the counter to 0.
+func (c *Counter) Reset() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.value = 0
 }

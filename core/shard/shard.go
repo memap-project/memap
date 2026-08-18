@@ -67,7 +67,7 @@ func (s *Shard[V]) Delete(key string) {
 
 // Update modifies an item in the shard under lock if it exists.
 // Returns true if the item was found and updated.
-func (s *Shard[V]) Update(key string, fn func(val *V) bool) bool {
+func (s *Shard[V]) Update(key string, fn func(val V) bool) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -75,7 +75,7 @@ func (s *Shard[V]) Update(key string, fn func(val *V) bool) bool {
 	if !ok {
 		return false
 	}
-	if fn(&val) {
+	if fn(val) {
 		s.items[key] = val
 		return true
 	}

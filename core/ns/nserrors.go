@@ -6,4 +6,5 @@ var (
 	ErrNamespaceAlreadyExists = errors.New("namespace already exists")
 	ErrNamespaceNotFound      = errors.New("namespace not found")
 	ErrKeyNotFound            = errors.New("key not found")
+	ErrKeyAlreadyExists       = errors.New("key already exists")
 )
