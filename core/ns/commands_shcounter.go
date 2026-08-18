@@ -26,7 +26,7 @@ func (nm *NamespaceManager) Init(ns, key string, limit, ttl int64) error {
 // SetLimit sets or updates the limit of a counter in the specified namespace.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist.
-func (nm *NamespaceManager) SetLimit(ns, key string, limit int64) error {
+func (nm *NamespaceManager) SLimit(ns, key string, limit int64) error {
 	if ns == "" {
 		ok := nm.defaultNs.shcounter.SetLimit(key, limit)
 		if !ok {
@@ -49,7 +49,7 @@ func (nm *NamespaceManager) SetLimit(ns, key string, limit int64) error {
 // GetLimit returns the limit of a counter in the specified namespace.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist.
-func (nm *NamespaceManager) GetLimit(ns, key string) (int64, error) {
+func (nm *NamespaceManager) GLimit(ns, key string) (int64, error) {
 	if ns == "" {
 		l, ok := nm.defaultNs.shcounter.GetLimit(key)
 		if !ok {
@@ -74,7 +74,7 @@ func (nm *NamespaceManager) GetLimit(ns, key string) (int64, error) {
 // Returns [ErrKeyNotFound] if the counter does not exist.
 func (nm *NamespaceManager) CGet(ns, key string) (int64, error) {
 	if ns == "" {
-		count, ok := nm.defaultNs.shcounter.CGet(key)
+		count, ok := nm.defaultNs.shcounter.Get(key)
 		if !ok {
 			return count, ErrKeyNotFound
 		}
@@ -84,7 +84,7 @@ func (nm *NamespaceManager) CGet(ns, key string) (int64, error) {
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	count, ok := n.shcounter.CGet(key)
+	count, ok := n.shcounter.Get(key)
 	if !ok {
 		return count, ErrKeyNotFound
 	}
@@ -93,16 +93,16 @@ func (nm *NamespaceManager) CGet(ns, key string) (int64, error) {
 
 // CDelete deletes a counter in the specified namespace.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) CDelete(ns, key string) error {
+func (nm *NamespaceManager) CDel(ns, key string) error {
 	if ns == "" {
-		nm.defaultNs.shcounter.CDelete(key)
+		nm.defaultNs.shcounter.Delete(key)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shcounter.CDelete(key)
+	n.shcounter.Delete(key)
 	return nil
 }
 
@@ -111,7 +111,7 @@ func (nm *NamespaceManager) CDelete(ns, key string) error {
 // Returns [ErrKeyNotFound] if the counter does not exist.
 func (nm *NamespaceManager) CExpire(ns, key string, ttl int64) error {
 	if ns == "" {
-		ok := nm.defaultNs.shcounter.CExpire(key, ttl)
+		ok := nm.defaultNs.shcounter.Expire(key, ttl)
 		if !ok {
 			return ErrKeyNotFound
 		}
@@ -121,7 +121,7 @@ func (nm *NamespaceManager) CExpire(ns, key string, ttl int64) error {
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shcounter.CExpire(key, ttl)
+	n.shcounter.Expire(key, ttl)
 	return nil
 }
 
@@ -132,7 +132,7 @@ func (nm *NamespaceManager) CExpire(ns, key string, ttl int64) error {
 // Returns -2 and false if the counter does not exist.
 func (nm *NamespaceManager) CTTL(ns, key string) (int64, error) {
 	if ns == "" {
-		count, ok := nm.defaultNs.shcounter.CTTL(key)
+		count, ok := nm.defaultNs.shcounter.TTL(key)
 		if !ok {
 			return count, ErrKeyNotFound
 		}
@@ -142,7 +142,7 @@ func (nm *NamespaceManager) CTTL(ns, key string) (int64, error) {
 	if !exists {
 		return -2, ErrNamespaceNotFound
 	}
-	count, ok := n.shcounter.CTTL(key)
+	count, ok := n.shcounter.TTL(key)
 	if !ok {
 		return count, ErrKeyNotFound
 	}
@@ -152,9 +152,9 @@ func (nm *NamespaceManager) CTTL(ns, key string) (int64, error) {
 // Incr increments the counter in the specified namespace.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist.
-func (nm *NamespaceManager) Incr(ns, key string, alpha int64) (int64, error) {
+func (nm *NamespaceManager) IncrBy(ns, key string, alpha int64) (int64, error) {
 	if ns == "" {
-		count, ok := nm.defaultNs.shcounter.Incr(key, alpha)
+		count, ok := nm.defaultNs.shcounter.IncrBy(key, alpha)
 		if !ok {
 			return count, ErrKeyNotFound
 		}
@@ -164,7 +164,7 @@ func (nm *NamespaceManager) Incr(ns, key string, alpha int64) (int64, error) {
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	count, ok := n.shcounter.Incr(key, alpha)
+	count, ok := n.shcounter.IncrBy(key, alpha)
 	if !ok {
 		return 0, ErrKeyNotFound
 	}
@@ -174,9 +174,9 @@ func (nm *NamespaceManager) Incr(ns, key string, alpha int64) (int64, error) {
 // Decr decrements the counter in the specified namespace.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist.
-func (nm *NamespaceManager) Decr(ns, key string, alpha int64) (int64, error) {
+func (nm *NamespaceManager) DecrBy(ns, key string, alpha int64) (int64, error) {
 	if ns == "" {
-		count, ok := nm.defaultNs.shcounter.Decr(key, alpha)
+		count, ok := nm.defaultNs.shcounter.DecrBy(key, alpha)
 		if !ok {
 			return 0, ErrKeyNotFound
 		}
@@ -186,7 +186,7 @@ func (nm *NamespaceManager) Decr(ns, key string, alpha int64) (int64, error) {
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	count, ok := n.shcounter.Decr(key, alpha)
+	count, ok := n.shcounter.DecrBy(key, alpha)
 	if !ok {
 		return 0, ErrKeyNotFound
 	}

@@ -44,8 +44,8 @@ func (i *Item) Expire(ttl int64) bool {
 	return true
 }
 
-// LeftTime returns the number of seconds until the item expires.
-func (i *Item) LeftTime() int64 {
+// TTL returns the number of seconds until the item expires.
+func (i *Item) TTL() int64 {
 	if i.expiresAt == 0 {
 		return 0
 	}

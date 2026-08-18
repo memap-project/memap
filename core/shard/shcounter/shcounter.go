@@ -74,9 +74,9 @@ func (s *ShardedCounter) GetLimit(key string) (int64, bool) {
 	return c.GetLimit(), true
 }
 
-// CGet returns the value of the counter with the given key.
+// Get returns the value of the counter with the given key.
 // Returns 0 and false if the counter does not exist.
-func (s *ShardedCounter) CGet(key string) (int64, bool) {
+func (s *ShardedCounter) Get(key string) (int64, bool) {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
 	if !ok {
@@ -89,14 +89,14 @@ func (s *ShardedCounter) CGet(key string) (int64, bool) {
 	return c.GetValue(), true
 }
 
-// CDelete deletes the counter with the given key.
-func (s *ShardedCounter) CDelete(key string) {
+// Delete deletes the counter with the given key.
+func (s *ShardedCounter) Delete(key string) {
 	s.getShard(key).Delete(key)
 }
 
-// CExpire sets the expiration time of the counter with the given key.
+// Expire sets the expiration time of the counter with the given key.
 // Returns true if the expiration time was set, false if the counter does not exist.
-func (s *ShardedCounter) CExpire(key string, ttl int64) bool {
+func (s *ShardedCounter) Expire(key string, ttl int64) bool {
 	return s.getShard(key).Update(key, func(c *vals.Counter) bool {
 		if c.IsExpired() {
 			return false
@@ -106,24 +106,24 @@ func (s *ShardedCounter) CExpire(key string, ttl int64) bool {
 	})
 }
 
-// CTTL returns the remaining time of the counter with the given key.
+// TTL returns the remaining time of the counter with the given key.
 // Returns -1 and true if the counter has no expiration time.
 // Returns -2 and false if the counter does not exist.
-func (s *ShardedCounter) CTTL(key string) (int64, bool) {
+func (s *ShardedCounter) TTL(key string) (int64, bool) {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
 	if !ok || c.IsExpired() {
 		return -2, false
 	}
-	if c.LeftTime() == 0 {
+	if c.TTL() == 0 {
 		return -1, true
 	}
-	return c.LeftTime(), true
+	return c.TTL(), true
 }
 
-// Incr increments the counter with the given key by alpha.
+// IncrBy increments the counter with the given key by alpha.
 // Returns 0 and false if the counter does not exist or the increment fails due to limit.
-func (s *ShardedCounter) Incr(key string, alpha int64) (int64, bool) {
+func (s *ShardedCounter) IncrBy(key string, alpha int64) (int64, bool) {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
 	if !ok {
@@ -133,16 +133,16 @@ func (s *ShardedCounter) Incr(key string, alpha int64) (int64, bool) {
 		shard.Delete(key)
 		return 0, false
 	}
-	ok = c.Incr(alpha)
+	ok = c.IncrBy(alpha)
 	if !ok {
 		return 0, false
 	}
 	return c.GetValue(), true
 }
 
-// Decr decrements the counter with the given key by alpha.
+// DecrBy decrements the counter with the given key by alpha.
 // Returns 0 and false if the counter does not exist or the decrement fails.
-func (s *ShardedCounter) Decr(key string, alpha int64) (int64, bool) {
+func (s *ShardedCounter) DecrBy(key string, alpha int64) (int64, bool) {
 	shard := s.getShard(key)
 	c, exist := shard.Get(key)
 	if !exist {
@@ -152,7 +152,7 @@ func (s *ShardedCounter) Decr(key string, alpha int64) (int64, bool) {
 		shard.Delete(key)
 		return 0, false
 	}
-	ok := c.Decr(alpha)
+	ok := c.DecrBy(alpha)
 	if !ok {
 		return 0, false
 	}

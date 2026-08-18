@@ -7,10 +7,10 @@ import (
 type commandHandler func(s *Server, req *memapv1.Request) *memapv1.Response
 
 var commandHandlers = map[memapv1.CommandType]commandHandler{
-	memapv1.CommandType_CREATE_NS: (*Server).handleCREATE_NS,
-	memapv1.CommandType_DELETE_NS: (*Server).handleDELETE_NS,
-	memapv1.CommandType_ERASE:     (*Server).handleERASE,
-	memapv1.CommandType_FLUSH:     (*Server).handleFLUSH,
+	memapv1.CommandType_CREATE: (*Server).handleCREATE,
+	memapv1.CommandType_DROP:   (*Server).handleDROP,
+	memapv1.CommandType_ERASE:  (*Server).handleERASE,
+	memapv1.CommandType_FLUSH:  (*Server).handleFLUSH,
 
 	memapv1.CommandType_SET:    (*Server).handleSET,
 	memapv1.CommandType_GET:    (*Server).handleGET,
@@ -32,24 +32,34 @@ var commandHandlers = map[memapv1.CommandType]commandHandler{
 	memapv1.CommandType_HFGET: (*Server).handleHFGET,
 	memapv1.CommandType_HFDEL: (*Server).handleHFDEL,
 
+	memapv1.CommandType_CINIT:   (*Server).handleCINIT,
+	memapv1.CommandType_SLIMIT:  (*Server).handleSLIMIT,
+	memapv1.CommandType_GLIMIT:  (*Server).handleGLIMIT,
+	memapv1.CommandType_CGET:    (*Server).handleCGET,
+	memapv1.CommandType_CDEL:    (*Server).handleCDEL,
+	memapv1.CommandType_CEXPIRE: (*Server).handleCEXPIRE,
+	memapv1.CommandType_CTTL:    (*Server).handleCTTL,
+	memapv1.CommandType_INCRBY:  (*Server).handleINCRBY,
+	memapv1.CommandType_DECRBY:  (*Server).handleDECRBY,
+
 	memapv1.CommandType_PING: func(s *Server, req *memapv1.Request) *memapv1.Response {
 		return okValue("PONG")
 	},
 }
 
 func (s *Server) processRequest(req *memapv1.Request) *memapv1.Response {
-	handler, ok := commandHandlers[req.Type]
+	handler, ok := commandHandlers[req.Command]
 	if !ok {
 		return &memapv1.Response{
-			Success:      false,
-			ErrorMessage: "unknown command",
+			Success: false,
+			Error:   "unknown command",
 		}
 	}
 	return handler(s, req)
 }
 
 func okValue(v string) *memapv1.Response {
-	return &memapv1.Response{Success: true, Value: v}
+	return &memapv1.Response{Success: true, StringValue: v}
 }
 
 func okIntValue(v int64) *memapv1.Response {
@@ -57,11 +67,11 @@ func okIntValue(v int64) *memapv1.Response {
 }
 
 func okHashValue(h map[string]string) *memapv1.Response {
-	return &memapv1.Response{Success: true, HashValue: h}
+	return &memapv1.Response{Success: true, MapValue: h}
 }
 
 func okListValue(l []string) *memapv1.Response {
-	return &memapv1.Response{Success: true, ListValues: l}
+	return &memapv1.Response{Success: true, SliceValue: l}
 }
 
 func okEmpty() *memapv1.Response {
@@ -73,5 +83,5 @@ func errEmpty() *memapv1.Response {
 }
 
 func errResponse(err error) *memapv1.Response {
-	return &memapv1.Response{Success: false, ErrorMessage: err.Error()}
+	return &memapv1.Response{Success: false, Error: err.Error()}
 }

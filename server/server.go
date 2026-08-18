@@ -54,8 +54,8 @@ func (s *Server) Start() error {
 			go func(c net.Conn) {
 				defer c.Close()
 				resp := &memapv1.Response{
-					Success:      false,
-					ErrorMessage: "server limit reached: too many connections",
+					Success: false,
+					Error:   "server limit reached: too many connections",
 				}
 				_ = protorw.WriteMsg(c, resp)
 			}(conn)

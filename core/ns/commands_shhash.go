@@ -5,7 +5,7 @@ package ns
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HGet(ns, key string) (map[string]string, error) {
 	if ns == "" {
-		v, ok := nm.defaultNs.shhash.HGet(key)
+		v, ok := nm.defaultNs.shhash.Get(key)
 		if !ok {
 			return v, ErrKeyNotFound
 		}
@@ -15,7 +15,7 @@ func (nm *NamespaceManager) HGet(ns, key string) (map[string]string, error) {
 	if !exists {
 		return map[string]string{}, ErrNamespaceNotFound
 	}
-	v, ok := n.shhash.HGet(key)
+	v, ok := n.shhash.Get(key)
 	if !ok {
 		return v, ErrKeyNotFound
 	}
@@ -26,35 +26,35 @@ func (nm *NamespaceManager) HGet(ns, key string) (map[string]string, error) {
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HSet(ns, key string, ttl int64) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HSet(key, ttl)
+		nm.defaultNs.shhash.Set(key, ttl)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HSet(key, ttl)
+	n.shhash.Set(key, ttl)
 	return nil
 }
 
 // HDelete deletes a hash from the namespace by key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) HDelete(ns, key string) error {
+func (nm *NamespaceManager) HDel(ns, key string) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HDelete(key)
+		nm.defaultNs.shhash.Delete(key)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HDelete(key)
+	n.shhash.Delete(key)
 	return nil
 }
 
 func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
 	if ns == "" {
-		ok := nm.defaultNs.shhash.HExpire(key, ttl)
+		ok := nm.defaultNs.shhash.Expire(key, ttl)
 		if !ok {
 			return ErrKeyNotFound
 		}
@@ -64,7 +64,7 @@ func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	ok := n.shhash.HExpire(key, ttl)
+	ok := n.shhash.Expire(key, ttl)
 	if !ok {
 		return ErrKeyNotFound
 	}
@@ -72,33 +72,35 @@ func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
 }
 
 // HTTL returns the time-to-live of the hash for the given key.
-// Returns 0 if the key does not exist or has no TTL.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns -1 and false if the key has no expiration time.
+// Returns -2 and false if the key does not exist.
 func (nm *NamespaceManager) HTTL(ns, key string) (int64, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HTTL(key), nil
+		return nm.defaultNs.shhash.TTL(key), nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	return n.shhash.HTTL(key), nil
+	return n.shhash.TTL(key), nil
 }
 
 func (nm *NamespaceManager) HExists(ns, key string) (bool, error) {
 	if ns == "" {
-		return nm.defaultNs.shhash.HExists(key), nil
+		return nm.defaultNs.shhash.Exists(key), nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return false, ErrNamespaceNotFound
 	}
-	return n.shhash.HExists(key), nil
+	return n.shhash.Exists(key), nil
 }
 
 // HLEN returns the number of fields in the hash for the given key.
 func (nm *NamespaceManager) HLen(ns, key string) (int64, error) {
 	if ns == "" {
-		len, ok := nm.defaultNs.shhash.HLen(key)
+		len, ok := nm.defaultNs.shhash.Len(key)
 		if !ok {
 			return len, ErrKeyNotFound
 		}
@@ -108,7 +110,7 @@ func (nm *NamespaceManager) HLen(ns, key string) (int64, error) {
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	len, ok := n.shhash.HLen(key)
+	len, ok := n.shhash.Len(key)
 	if !ok {
 		return len, ErrKeyNotFound
 	}
@@ -117,7 +119,7 @@ func (nm *NamespaceManager) HLen(ns, key string) (int64, error) {
 
 func (nm *NamespaceManager) HKeys(ns, key string) ([]string, error) {
 	if ns == "" {
-		keys, ok := nm.defaultNs.shhash.HKeys(key)
+		keys, ok := nm.defaultNs.shhash.Keys(key)
 		if !ok {
 			return keys, ErrKeyNotFound
 		}
@@ -127,7 +129,7 @@ func (nm *NamespaceManager) HKeys(ns, key string) ([]string, error) {
 	if !exists {
 		return []string{}, ErrNamespaceNotFound
 	}
-	keys, ok := n.shhash.HKeys(key)
+	keys, ok := n.shhash.Keys(key)
 	if !ok {
 		return keys, ErrKeyNotFound
 	}
@@ -137,7 +139,7 @@ func (nm *NamespaceManager) HKeys(ns, key string) ([]string, error) {
 // HValues returns the values of the hash for the given key.
 func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 	if ns == "" {
-		values, ok := nm.defaultNs.shhash.HValues(key)
+		values, ok := nm.defaultNs.shhash.Values(key)
 		if !ok {
 			return values, ErrKeyNotFound
 		}
@@ -147,7 +149,7 @@ func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 	if !exists {
 		return []string{}, ErrNamespaceNotFound
 	}
-	values, ok := n.shhash.HValues(key)
+	values, ok := n.shhash.Values(key)
 	if !ok {
 		return values, ErrKeyNotFound
 	}
@@ -159,7 +161,7 @@ func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 	if ns == "" {
-		v, ok := nm.defaultNs.shhash.HFGet(key, field)
+		v, ok := nm.defaultNs.shhash.GetField(key, field)
 		if !ok {
 			return v, ErrKeyNotFound
 		}
@@ -169,7 +171,7 @@ func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 	if !exists {
 		return "", ErrNamespaceNotFound
 	}
-	v, ok := n.shhash.HFGet(key, field)
+	v, ok := n.shhash.GetField(key, field)
 	if !ok {
 		return v, ErrKeyNotFound
 	}
@@ -181,28 +183,28 @@ func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HFSet(ns, key, field, value string) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HFSet(key, field, value)
+		nm.defaultNs.shhash.SetField(key, field, value)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HFSet(key, field, value)
+	n.shhash.SetField(key, field, value)
 	return nil
 }
 
 // HFDelete deletes a field from the hash for the given key and field.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) HFDelete(ns, key, field string) error {
+func (nm *NamespaceManager) HFDel(ns, key, field string) error {
 	if ns == "" {
-		nm.defaultNs.shhash.HFDelete(key, field)
+		nm.defaultNs.shhash.DeleteField(key, field)
 		return nil
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return ErrNamespaceNotFound
 	}
-	n.shhash.HFDelete(key, field)
+	n.shhash.DeleteField(key, field)
 	return nil
 }

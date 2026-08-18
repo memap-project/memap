@@ -43,9 +43,9 @@ func (c *Counter) Expire(ttl int64) bool {
 	return true
 }
 
-// LeftTime returns the remaining time of the counter.
+// TTL returns the remaining time of the counter.
 // Returns 0 if the counter has no expiration time.
-func (c *Counter) LeftTime() int64 {
+func (c *Counter) TTL() int64 {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.expiresAt == 0 {
@@ -75,9 +75,9 @@ func (c *Counter) GetValue() int64 {
 	return c.value
 }
 
-// Incr increments the counter by alpha, up to the limit if set.
+// IncrBy increments the counter by alpha, up to the limit if set.
 // Returns true if the counter was incremented, false if the limit was reached.
-func (c *Counter) Incr(alpha int64) bool {
+func (c *Counter) IncrBy(alpha int64) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.limit > 0 && c.value+alpha > c.limit {
@@ -87,9 +87,9 @@ func (c *Counter) Incr(alpha int64) bool {
 	return true
 }
 
-// Decr decrements the counter by alpha, down to 0 if the counter is already 0.
+// DecrBy decrements the counter by alpha, down to 0 if the counter is already 0.
 // Returns true if the counter was decremented, false otherwise.
-func (c *Counter) Decr(alpha int64) bool {
+func (c *Counter) DecrBy(alpha int64) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.value-alpha >= 0 {

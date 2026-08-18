@@ -83,10 +83,10 @@ func (s *ShardedMap) TTL(key string) int64 {
 	if !ok || i.IsExpired() {
 		return -2
 	}
-	if i.LeftTime() == 0 {
+	if i.TTL() == 0 {
 		return -1
 	}
-	return i.LeftTime()
+	return i.TTL()
 }
 
 // CleanExpired cleans expired items.

@@ -47,8 +47,8 @@ func (h *Hash) Expire(ttl int64) bool {
 	return true
 }
 
-// LeftTime returns the remaining time until the hash expires.
-func (h *Hash) LeftTime() int64 {
+// TTL returns the remaining time until the hash expires.
+func (h *Hash) TTL() int64 {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if h.expiresAt == 0 {

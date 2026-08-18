@@ -7,7 +7,7 @@ func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 	if ns == "" {
 		val, ok := nm.defaultNs.shmap.Get(key)
 		if !ok {
-			return "", ErrKeyNotFound
+			return val, ErrKeyNotFound
 		}
 		return val, nil
 	}
@@ -19,7 +19,7 @@ func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 
 	val, ok := n.shmap.Get(key)
 	if !ok {
-		return "", ErrKeyNotFound
+		return val, ErrKeyNotFound
 	}
 	return val, nil
 }
@@ -43,7 +43,7 @@ func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
 
 // Delete removes an item from the namespace by key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-func (nm *NamespaceManager) Delete(ns, key string) error {
+func (nm *NamespaceManager) Del(ns, key string) error {
 	if ns == "" {
 		nm.defaultNs.shmap.Delete(key)
 		return nil
@@ -78,6 +78,8 @@ func (nm *NamespaceManager) Expire(ns, key string, ttl int64) error {
 
 // TTL returns the time-to-live of the item in the namespace by key.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns -1 and false if the key has no expiration time.
+// Returns -2 and false if the key does not exist.
 func (nm *NamespaceManager) TTL(ns, key string) (int64, error) {
 	if ns == "" {
 		return nm.defaultNs.shmap.TTL(key), nil

@@ -2,15 +2,15 @@ package server
 
 import memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 
-func (s *Server) handleCREATE_NS(req *memapv1.Request) *memapv1.Response {
-	if err := s.manager.CreateNs(req.GetNamespaceName()); err != nil {
+func (s *Server) handleCREATE(req *memapv1.Request) *memapv1.Response {
+	if err := s.manager.Create(req.GetNamespace()); err != nil {
 		return errResponse(err)
 	}
 	return okEmpty()
 }
 
-func (s *Server) handleDELETE_NS(req *memapv1.Request) *memapv1.Response {
-	if err := s.manager.DeleteNs(req.GetNamespaceName()); err != nil {
+func (s *Server) handleDROP(req *memapv1.Request) *memapv1.Response {
+	if err := s.manager.Drop(req.GetNamespace()); err != nil {
 		return errResponse(err)
 	}
 	return okEmpty()

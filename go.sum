@@ -2,8 +2,8 @@ github.com/dmi3midd/protorw v0.0.0-20260728160839-7774d9725db1 h1:m83Q3YW4WktCrg
 github.com/dmi3midd/protorw v0.0.0-20260728160839-7774d9725db1/go.mod h1:qZhPqThsoWv89L4HIqjDAqZqqsovn/r1N3wr+7LAPdc=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-github.com/memap-project/memap-proto v0.0.0-20260811202227-b1928861d1c6 h1:sAYftHVy9rlwhGosDNtdMhHoiCyDMpO7lMOkII8rEC8=
-github.com/memap-project/memap-proto v0.0.0-20260811202227-b1928861d1c6/go.mod h1:HE3kYydtcFamjc4BtFoU5Doh4QWd1aGSQmJl1fgSRsQ=
+github.com/memap-project/memap-proto v0.0.0-20260818182013-7f8ed11cd237 h1:FEFMEotk1nzEFdoqFpvcqWCkmNAJw9060nnSustGefc=
+github.com/memap-project/memap-proto v0.0.0-20260818182013-7f8ed11cd237/go.mod h1:HE3kYydtcFamjc4BtFoU5Doh4QWd1aGSQmJl1fgSRsQ=
 google.golang.org/protobuf v1.36.11 h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=
 google.golang.org/protobuf v1.36.11/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
