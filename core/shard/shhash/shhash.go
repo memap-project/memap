@@ -7,11 +7,13 @@ import (
 	"github.com/memap-project/memap/core/vals"
 )
 
+// ShardedHash is a partitioned map storing hash objects across multiple shards.
 type ShardedHash struct {
 	shardCount uint8
 	shards     []*shard.Shard[*vals.Hash]
 }
 
+// NewShardedHash creates a new ShardedHash with default shard count (8).
 func NewShardedHash() *ShardedHash {
 	shards := make([]*shard.Shard[*vals.Hash], 8)
 	for i := range shards {
@@ -23,7 +25,7 @@ func NewShardedHash() *ShardedHash {
 	}
 }
 
-// getShard returns the shard that the key belongs to.
+// getShard returns the shard corresponding to the given key based on FNV-1a hash.
 func (s *ShardedHash) getShard(key string) *shard.Shard[*vals.Hash] {
 	h := fnv.New32a()
 	h.Write([]byte(key))
@@ -31,8 +33,8 @@ func (s *ShardedHash) getShard(key string) *shard.Shard[*vals.Hash] {
 	return s.shards[idx]
 }
 
-// Get retrieves the hash for the given key.
-// Returns an empty map and false if the hash does not exist.
+// Get retrieves a copy of all field-value pairs for the given key.
+// Returns empty map and false if the key does not exist or is expired.
 func (s *ShardedHash) Get(key string) (map[string]string, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
@@ -45,8 +47,7 @@ func (s *ShardedHash) Get(key string) (map[string]string, bool) {
 	return h.GetCopy(), true
 }
 
-// Set creates or overwrites hash.
-// Creates if the hash does not exist, or overwrites if it does.
+// Set creates a new empty hash for the given key with optional TTL, overwriting any existing hash.
 func (s *ShardedHash) Set(key string, ttl int64) bool {
 	h := vals.NewHash()
 	if ttl > 0 {
@@ -56,12 +57,14 @@ func (s *ShardedHash) Set(key string, ttl int64) bool {
 	return true
 }
 
-// Delete deletes the hash map for the given key.
+// Delete removes the hash for the given key.
 func (s *ShardedHash) Delete(key string) {
 	s.getShard(key).Delete(key)
 }
 
-// Expire expires the hash for the given key.
+// Expire sets the expiration time for the hash of the given key.
+// Returns true if the hash exists and expiration was set.
+// Returns false if the hash does not exist or is already expired.
 func (s *ShardedHash) Expire(key string, ttl int64) bool {
 	return s.getShard(key).Update(key, func(h *vals.Hash) bool {
 		if h.IsExpired() {
@@ -72,9 +75,9 @@ func (s *ShardedHash) Expire(key string, ttl int64) bool {
 	})
 }
 
-// TTL returns the remaining time of the hash for the given key.
-// Returns -1 and false if the hash has no expiration time.
-// Returns -2 and false if the hash does not exist.
+// TTL returns the time-to-live of the hash for the given key in seconds.
+// Returns -1 if the hash exists and has no expiration time.
+// Returns -2 if the hash does not exist or is expired.
 func (s *ShardedHash) TTL(key string) int64 {
 	h, ok := s.getShard(key).Get(key)
 	if !ok || h.IsExpired() {
@@ -86,14 +89,21 @@ func (s *ShardedHash) TTL(key string) int64 {
 	return h.TTL()
 }
 
-// Exists returns true if the hash for the given key exists.
+// Exists returns true if an unexpired hash exists for the given key.
 func (s *ShardedHash) Exists(key string) bool {
-	_, ok := s.getShard(key).Get(key)
-	return ok
+	h, ok := s.getShard(key).Get(key)
+	if !ok {
+		return false
+	}
+	if h.IsExpired() {
+		s.getShard(key).Delete(key)
+		return false
+	}
+	return true
 }
 
-// LEN returns the number of fields in the hash for the given key.
-// Returns 0 and false if the key does not exist.
+// Len returns the number of fields in the hash for the given key.
+// Returns 0 and false if the hash does not exist or is expired.
 func (s *ShardedHash) Len(key string) (int64, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
@@ -106,8 +116,8 @@ func (s *ShardedHash) Len(key string) (int64, bool) {
 	return h.Len(), true
 }
 
-// Keys returns all the fields of the hash for the given key.
-// Returns empty slice and false if the key does not exist.
+// Keys returns all field names in the hash for the given key.
+// Returns empty slice and false if the hash does not exist or is expired.
 func (s *ShardedHash) Keys(key string) ([]string, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
@@ -120,8 +130,8 @@ func (s *ShardedHash) Keys(key string) ([]string, bool) {
 	return h.Keys(), true
 }
 
-// Values returns all the values of the hash for the given key.
-// Returns empty slice and false if the key does not exist.
+// Values returns all field values in the hash for the given key.
+// Returns empty slice and false if the hash does not exist or is expired.
 func (s *ShardedHash) Values(key string) ([]string, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
@@ -134,8 +144,8 @@ func (s *ShardedHash) Values(key string) ([]string, bool) {
 	return h.Values(), true
 }
 
-// GetField retrieves a value of the field from the hash for the given key and field.
-// Returns empty string and false if the key or field does not exist.
+// GetField retrieves the value of the specified field from the hash for the given key.
+// Returns empty string and false if the hash or field does not exist, or if the hash is expired.
 func (s *ShardedHash) GetField(key string, field string) (string, bool) {
 	h, ok := s.getShard(key).Get(key)
 	if !ok {
@@ -148,8 +158,7 @@ func (s *ShardedHash) GetField(key string, field string) (string, bool) {
 	return h.Get(field)
 }
 
-// SetField sets a field in the hash for the given key and field.
-// Creates a new hash if not exists.
+// SetField sets or updates a field in the hash for the given key. Creates a new hash if one does not exist.
 func (s *ShardedHash) SetField(key, field, value string) bool {
 	h, _ := s.getShard(key).GetOrInit(key, vals.NewHash)
 	if h.IsExpired() {
@@ -160,7 +169,7 @@ func (s *ShardedHash) SetField(key, field, value string) bool {
 	return true
 }
 
-// DeleteField deletes a field from the hash for the given key and field.
+// DeleteField removes a field from the hash for the given key.
 func (s *ShardedHash) DeleteField(key, field string) {
 	h, ok := s.getShard(key).Get(key)
 	if ok {
@@ -168,7 +177,7 @@ func (s *ShardedHash) DeleteField(key, field string) {
 	}
 }
 
-// CleanExpired cleans expired hashes.
+// CleanExpired removes all expired hashes across all shards.
 func (s *ShardedHash) CleanExpired() {
 	for _, shard := range s.shards {
 		shard.Clean(func(_ string, h *vals.Hash) bool {
@@ -177,7 +186,7 @@ func (s *ShardedHash) CleanExpired() {
 	}
 }
 
-// Flush removes all hashes from the shard.
+// Flush removes all hashes across all shards.
 func (s *ShardedHash) Flush() {
 	for _, shard := range s.shards {
 		shard.Flush()

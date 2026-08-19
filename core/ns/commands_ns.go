@@ -3,12 +3,13 @@ package ns
 import "github.com/memap-project/memap/core/tsmap"
 
 // GetNs retrieves a namespace by name.
+// Returns the namespace and true if found, nil and false otherwise.
 func (nm *NamespaceManager) GetNs(name string) (*Namespace, bool) {
 	ns, exists := nm.namespaces.Load(name)
 	return ns, exists
 }
 
-// [Create] creates a new namespace by name.
+// Create creates a new namespace with the given name.
 // Returns [ErrNamespaceAlreadyExists] if the namespace already exists.
 func (nm *NamespaceManager) Create(name string) error {
 	ns := NewNamespace()
@@ -19,13 +20,13 @@ func (nm *NamespaceManager) Create(name string) error {
 	return nil
 }
 
-// [Drop] deletes a namespace by name.
+// Drop deletes a namespace by name.
 func (nm *NamespaceManager) Drop(name string) error {
 	nm.namespaces.Delete(name)
 	return nil
 }
 
-// Erase drops all keys and namespaces.
+// Erase flushes all data in the default namespace and drops all custom namespaces.
 func (nm *NamespaceManager) Erase() {
 	nm.mu.Lock()
 	defer nm.mu.Unlock()
@@ -33,16 +34,18 @@ func (nm *NamespaceManager) Erase() {
 	nm.namespaces = tsmap.TypedSyncMap[string, *Namespace]{}
 }
 
-// Flush flushes all keys in all namespaces.
+// Flush removes all keys across all namespaces including the default namespace.
 func (nm *NamespaceManager) Flush() {
 	nm.flushDefaultNs()
 	nm.flushCustomNamespaces()
 }
 
+// flushDefaultNs flushes all keys in the default namespace.
 func (nm *NamespaceManager) flushDefaultNs() {
 	nm.defaultNs.Flush()
 }
 
+// flushCustomNamespaces flushes all keys in all custom namespaces.
 func (nm *NamespaceManager) flushCustomNamespaces() {
 	nm.namespaces.Range(func(k string, v *Namespace) bool {
 		v.Flush()
@@ -50,7 +53,7 @@ func (nm *NamespaceManager) flushCustomNamespaces() {
 	})
 }
 
-// CleanExpired cleans all expired keys in all namespaces.
+// CleanExpired removes all expired keys across all namespaces including the default namespace.
 func (nm *NamespaceManager) CleanExpired() {
 	nm.cleanDefaultNs()
 	nm.cleanCustomNamespaces()
@@ -61,7 +64,7 @@ func (nm *NamespaceManager) cleanDefaultNs() {
 	nm.defaultNs.CleanExpired()
 }
 
-// cleanCustomNamespaces cleans all expired keys in all namespaces except default.
+// cleanCustomNamespaces cleans all expired keys in all custom namespaces.
 func (nm *NamespaceManager) cleanCustomNamespaces() {
 	nm.namespaces.Range(func(k string, v *Namespace) bool {
 		v.CleanExpired()

@@ -1,8 +1,9 @@
 package ns
 
-// Get retrieves an item from the namespace by key.
-// Returns [ErrKeyNotFound] if the key is not found or expired.
+// Get retrieves the value of the key from the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist or is expired.
 func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 	if ns == "" {
 		val, ok := nm.defaultNs.shmap.Get(key)
@@ -24,7 +25,8 @@ func (nm *NamespaceManager) Get(ns, key string) (string, error) {
 	return val, nil
 }
 
-// Set stores an item in the namespace by key.
+// Set stores a key-value pair with optional TTL in the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
 	if ns == "" {
@@ -41,7 +43,8 @@ func (nm *NamespaceManager) Set(ns, key, value string, ttl int64) error {
 	return nil
 }
 
-// Delete removes an item from the namespace by key.
+// Del removes a key from the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) Del(ns, key string) error {
 	if ns == "" {
@@ -57,6 +60,10 @@ func (nm *NamespaceManager) Del(ns, key string) error {
 	return nil
 }
 
+// Expire sets the expiration time for the key in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist or is expired.
 func (nm *NamespaceManager) Expire(ns, key string, ttl int64) error {
 	if ns == "" {
 		if ok := nm.defaultNs.shmap.Expire(key, ttl); !ok {
@@ -76,10 +83,11 @@ func (nm *NamespaceManager) Expire(ns, key string, ttl int64) error {
 	return nil
 }
 
-// TTL returns the time-to-live of the item in the namespace by key.
+// TTL returns the time-to-live of the key in seconds from the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns -1 if the key has no expiration time.
+// Returns -2 if the key does not exist or is expired.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns -1 and false if the key has no expiration time.
-// Returns -2 and false if the key does not exist.
 func (nm *NamespaceManager) TTL(ns, key string) (int64, error) {
 	if ns == "" {
 		return nm.defaultNs.shmap.TTL(key), nil

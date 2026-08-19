@@ -7,7 +7,7 @@ import (
 	"github.com/memap-project/memap/core/vals"
 )
 
-// ShardedMap is a map that stores shards of data for fast sharded access.
+// ShardedMap is a partitioned map storing string key-value pairs across multiple shards.
 type ShardedMap struct {
 	shardCount uint8
 	shards     []*shard.Shard[*vals.Item]
@@ -25,7 +25,7 @@ func NewShardedMap() *ShardedMap {
 	}
 }
 
-// getShard returns the shard that the key belongs to.
+// getShard returns the shard corresponding to the given key based on FNV-1a hash.
 func (s *ShardedMap) getShard(key string) *shard.Shard[*vals.Item] {
 	h := fnv.New32a()
 	h.Write([]byte(key))
@@ -33,8 +33,8 @@ func (s *ShardedMap) getShard(key string) *shard.Shard[*vals.Item] {
 	return s.shards[idx]
 }
 
-// Get retrieves an item from the sharded map.
-// Returns empty string and false if the key doesn't exist.
+// Get retrieves the value of the key from the sharded map.
+// Returns empty string and false if the key does not exist or is expired.
 func (s *ShardedMap) Get(key string) (string, bool) {
 	shard := s.getShard(key)
 	i, ok := shard.Get(key)
@@ -48,7 +48,7 @@ func (s *ShardedMap) Get(key string) (string, bool) {
 	return i.GetValue(), true
 }
 
-// Set upserts an item in the sharded map.
+// Set sets or updates the value and optional TTL for the key in the sharded map.
 func (s *ShardedMap) Set(key, value string, ttl int64) bool {
 	i := vals.NewItem()
 	i.SetValue(value)
@@ -59,12 +59,14 @@ func (s *ShardedMap) Set(key, value string, ttl int64) bool {
 	return true
 }
 
-// Delete deletes an item from the sharded map.
+// Delete removes the key from the sharded map.
 func (s *ShardedMap) Delete(key string) {
 	s.getShard(key).Delete(key)
 }
 
-// Expire sets expiration time for the key if it exists.
+// Expire sets the expiration time for the key.
+// Returns true if the key exists and expiration was set.
+// Returns false if the key does not exist or is already expired.
 func (s *ShardedMap) Expire(key string, ttl int64) bool {
 	return s.getShard(key).Update(key, func(i *vals.Item) bool {
 		if i.IsExpired() {
@@ -75,9 +77,9 @@ func (s *ShardedMap) Expire(key string, ttl int64) bool {
 	})
 }
 
-// TTL returns the time-to-live of the key if it exists and is not expired.
-// Returns -1 and false if the key has no expiration time.
-// Returns -2 and false if the key does not exist.
+// TTL returns the time-to-live of the key in seconds.
+// Returns -1 if the key exists and has no expiration time.
+// Returns -2 if the key does not exist or is expired.
 func (s *ShardedMap) TTL(key string) int64 {
 	i, ok := s.getShard(key).Get(key)
 	if !ok || i.IsExpired() {
@@ -89,7 +91,7 @@ func (s *ShardedMap) TTL(key string) int64 {
 	return i.TTL()
 }
 
-// CleanExpired cleans expired items.
+// CleanExpired removes all expired items across all shards.
 func (s *ShardedMap) CleanExpired() {
 	for _, shard := range s.shards {
 		shard.Clean(func(key string, item *vals.Item) bool {
@@ -98,7 +100,7 @@ func (s *ShardedMap) CleanExpired() {
 	}
 }
 
-// Flush removes all items from the shard.
+// Flush removes all items across all shards.
 func (s *ShardedMap) Flush() {
 	for _, shard := range s.shards {
 		shard.Flush()

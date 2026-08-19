@@ -4,13 +4,13 @@ import (
 	"sync"
 )
 
-// Shard is a unit of data storage for sharded map.
+// Shard is a thread-safe unit of storage containing a map of items protected by an RWMutex.
 type Shard[V any] struct {
 	mu    sync.RWMutex
 	items map[string]V
 }
 
-// NewShard creates a new shard.
+// NewShard creates a new Shard.
 func NewShard[V any]() *Shard[V] {
 	return &Shard[V]{
 		mu:    sync.RWMutex{},
@@ -18,8 +18,8 @@ func NewShard[V any]() *Shard[V] {
 	}
 }
 
-// Get retrieves an item from the shard.
-// Returns zero value and false if the key doesn't exist.
+// Get retrieves an item for the given key from the Shard.
+// Returns zero value and false if the key does not exist.
 func (s *Shard[V]) Get(key string) (V, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -31,8 +31,8 @@ func (s *Shard[V]) Get(key string) (V, bool) {
 	return value, true
 }
 
-// GetOrInit retrieves an item from the shard, or initializes and stores a new item if it does not exist.
-// Returns true if the item was retrieved, false if it was initialized.
+// GetOrInit retrieves an item for the given key, or initializes and stores a new item if it does not exist.
+// Returns the item and true if it existed, or the initialized item and false if it was newly created.
 func (s *Shard[V]) GetOrInit(key string, initFn func() V) (V, bool) {
 	s.mu.RLock()
 	val, ok := s.items[key]
@@ -40,7 +40,6 @@ func (s *Shard[V]) GetOrInit(key string, initFn func() V) (V, bool) {
 	if ok {
 		return val, true
 	}
-
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if val, ok = s.items[key]; ok {
@@ -51,26 +50,26 @@ func (s *Shard[V]) GetOrInit(key string, initFn func() V) (V, bool) {
 	return val, false
 }
 
-// Set sets or updates an item in the shard.
+// Set sets or updates the item for the given key in the Shard.
 func (s *Shard[V]) Set(key string, value V) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.items[key] = value
 }
 
-// Delete deletes an item from the shard.
+// Delete removes the item for the given key from the Shard.
 func (s *Shard[V]) Delete(key string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.items, key)
 }
 
-// Update modifies an item in the shard under lock if it exists.
-// Returns true if the item was found and updated.
+// Update updates an item in the Shard under write lock if it exists.
+// Returns true if the item was found and the update function returned true.
+// Returns false if the item does not exist.
 func (s *Shard[V]) Update(key string, fn func(val V) bool) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
 	val, ok := s.items[key]
 	if !ok {
 		return false
@@ -82,9 +81,7 @@ func (s *Shard[V]) Update(key string, fn func(val V) bool) bool {
 	return false
 }
 
-// Clean cleans items from the shard based on a predicate function.
-// The predicate function receives the key and value and should return true if the item should be deleted.
-// This operation acquires a write lock for the entire duration.
+// Clean removes items from the Shard for which the predicate returns true.
 func (s *Shard[V]) Clean(predicate func(key string, value V) bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -95,7 +92,7 @@ func (s *Shard[V]) Clean(predicate func(key string, value V) bool) {
 	}
 }
 
-// Flush removes all items from the shard.
+// Flush removes all items from the Shard.
 func (s *Shard[V]) Flush() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

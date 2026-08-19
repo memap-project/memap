@@ -6,15 +6,15 @@ import (
 	"time"
 )
 
-// Hash is a thread-safe map with RWMutex.
-// It is used to store string key-value pairs.
+// Hash is a thread-safe map for string key-value pairs with optional expiration.
+// If expiresAt is 0, the Hash has no expiration.
 type Hash struct {
 	mu        sync.RWMutex
 	hash      map[string]string
 	expiresAt int64
 }
 
-// NewHash creates a new thread-safe map.
+// NewHash creates a new Hash.
 func NewHash() *Hash {
 	return &Hash{
 		hash:      make(map[string]string, 8),
@@ -22,7 +22,8 @@ func NewHash() *Hash {
 	}
 }
 
-// IsExpired returns true if the hash is expired.
+// IsExpired returns true if the Hash has an expiration time and is expired.
+// Returns false if the Hash has no expiration time or is not yet expired.
 func (h *Hash) IsExpired() bool {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -32,22 +33,23 @@ func (h *Hash) IsExpired() bool {
 	return time.Now().Unix() > h.expiresAt
 }
 
-// Expire sets or updates the expiration time for the hash.
+// Expire sets the expiration time for the Hash.
+// Returns false if the Hash is already expired or if ttl is negative.
 func (h *Hash) Expire(ttl int64) bool {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.IsExpired() {
 		return false
 	}
-	if ttl <= 0 {
-		h.expiresAt = 0
-		return true
+	if ttl < 0 {
+		return false
 	}
 	h.expiresAt = time.Now().Unix() + ttl
 	return true
 }
 
-// TTL returns the remaining time until the hash expires.
+// TTL returns the remaining time-to-live in seconds.
+// Returns 0 if the Hash has no expiration time.
 func (h *Hash) TTL() int64 {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -57,18 +59,17 @@ func (h *Hash) TTL() int64 {
 	return h.expiresAt - time.Now().Unix()
 }
 
-// GetCopy returns a copy of the hash map.
+// GetCopy returns a copy of the Hash.
 func (h *Hash) GetCopy() map[string]string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-
 	cp := make(map[string]string, len(h.hash))
 	maps.Copy(cp, h.hash)
 	return cp
 }
 
-// Get retrieves a value for the given key.
-// Returns empty string and false if the key does not exist.
+// Get retrieves the value for the field in the Hash.
+// Returns empty string and false if the field does not exist.
 func (h *Hash) Get(key string) (string, bool) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -79,28 +80,28 @@ func (h *Hash) Get(key string) (string, bool) {
 	return value, true
 }
 
-// Set sets or updates a value for the given key.
+// Set sets or updates the value for the field in the Hash.
 func (h *Hash) Set(key string, value string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.hash[key] = value
 }
 
-// Delete removes a key-value pair from the map.
+// Delete removes the specified field from the Hash.
 func (h *Hash) Delete(key string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	delete(h.hash, key)
 }
 
-// Len returns the number of key-value pairs in the map.
+// Len returns the number of fields stored in the Hash.
 func (h *Hash) Len() int64 {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return int64(len(h.hash))
 }
 
-// Keys returns a slice of all keys in the hash.
+// Keys returns a slice of all field names in the Hash.
 func (h *Hash) Keys() []string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -111,6 +112,7 @@ func (h *Hash) Keys() []string {
 	return keys
 }
 
+// Values returns a slice of all field values in the Hash.
 func (h *Hash) Values() []string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()

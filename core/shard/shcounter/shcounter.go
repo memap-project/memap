@@ -7,11 +7,13 @@ import (
 	"github.com/memap-project/memap/core/vals"
 )
 
+// ShardedCounter is a partitioned counter storage across multiple shards.
 type ShardedCounter struct {
 	shardCount uint8
 	shards     []*shard.Shard[*vals.Counter]
 }
 
+// NewShardedCounter creates a new ShardedCounter with default shard count (8).
 func NewShardedCounter() *ShardedCounter {
 	shards := make([]*shard.Shard[*vals.Counter], 8)
 	for i := range shards {
@@ -23,7 +25,7 @@ func NewShardedCounter() *ShardedCounter {
 	}
 }
 
-// getShard returns the shard that the key belongs to.
+// getShard returns the shard corresponding to the given key based on FNV-1a hash.
 func (s *ShardedCounter) getShard(key string) *shard.Shard[*vals.Counter] {
 	h := fnv.New32a()
 	h.Write([]byte(key))
@@ -31,8 +33,9 @@ func (s *ShardedCounter) getShard(key string) *shard.Shard[*vals.Counter] {
 	return s.shards[idx]
 }
 
-// Init initializes a counter with the given key, limit, and ttl.
-// Returns true if the counter was initialized, false if it already existed.
+// Init initializes a new counter with the given key, limit, and optional TTL.
+// Returns true if the counter was created.
+// Returns false if a counter already exists for the given key.
 func (s *ShardedCounter) Init(key string, limit int64, ttl int64) bool {
 	c, ok := s.getShard(key).GetOrInit(key, vals.NewCounter)
 	if ok {
@@ -43,8 +46,9 @@ func (s *ShardedCounter) Init(key string, limit int64, ttl int64) bool {
 	return true
 }
 
-// SetLimit sets the limit of the counter with the given key.
-// Returns true if the limit was set, false if the counter does not exist.
+// SetLimit sets or updates the upper limit for the counter of the given key.
+// Returns true if the limit was set.
+// Returns false if the counter does not exist or is expired.
 func (s *ShardedCounter) SetLimit(key string, limit int64) bool {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
@@ -59,8 +63,8 @@ func (s *ShardedCounter) SetLimit(key string, limit int64) bool {
 	return true
 }
 
-// GetLimit returns the limit of the counter with the given key.
-// Returns 0 and false if the counter does not exist.
+// GetLimit returns the upper limit of the counter for the given key.
+// Returns 0 and false if the counter does not exist or is expired.
 func (s *ShardedCounter) GetLimit(key string) (int64, bool) {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
@@ -74,8 +78,8 @@ func (s *ShardedCounter) GetLimit(key string) (int64, bool) {
 	return c.GetLimit(), true
 }
 
-// Get returns the value of the counter with the given key.
-// Returns 0 and false if the counter does not exist.
+// Get returns the current value of the counter for the given key.
+// Returns 0 and false if the counter does not exist or is expired.
 func (s *ShardedCounter) Get(key string) (int64, bool) {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
@@ -89,13 +93,14 @@ func (s *ShardedCounter) Get(key string) (int64, bool) {
 	return c.GetValue(), true
 }
 
-// Delete deletes the counter with the given key.
+// Delete removes the counter for the given key.
 func (s *ShardedCounter) Delete(key string) {
 	s.getShard(key).Delete(key)
 }
 
-// Expire sets the expiration time of the counter with the given key.
-// Returns true if the expiration time was set, false if the counter does not exist.
+// Expire sets the expiration time for the counter of the given key.
+// Returns true if the counter exists and expiration was set.
+// Returns false if the counter does not exist or is already expired.
 func (s *ShardedCounter) Expire(key string, ttl int64) bool {
 	return s.getShard(key).Update(key, func(c *vals.Counter) bool {
 		if c.IsExpired() {
@@ -106,9 +111,9 @@ func (s *ShardedCounter) Expire(key string, ttl int64) bool {
 	})
 }
 
-// TTL returns the remaining time of the counter with the given key.
-// Returns -1 and true if the counter has no expiration time.
-// Returns -2 and false if the counter does not exist.
+// TTL returns the remaining time-to-live of the counter in seconds.
+// Returns -1 and true if the counter exists and has no expiration time.
+// Returns -2 and false if the counter does not exist or is expired.
 func (s *ShardedCounter) TTL(key string) (int64, bool) {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
@@ -121,8 +126,9 @@ func (s *ShardedCounter) TTL(key string) (int64, bool) {
 	return c.TTL(), true
 }
 
-// IncrBy increments the counter with the given key by alpha.
-// Returns 0 and false if the counter does not exist or the increment fails due to limit.
+// IncrBy increments the counter for the given key by alpha.
+// Returns the new value and true if the increment succeeded.
+// Returns 0 and false if the counter does not exist, is expired, or if the increment exceeds limit.
 func (s *ShardedCounter) IncrBy(key string, alpha int64) (int64, bool) {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
@@ -140,8 +146,9 @@ func (s *ShardedCounter) IncrBy(key string, alpha int64) (int64, bool) {
 	return c.GetValue(), true
 }
 
-// DecrBy decrements the counter with the given key by alpha.
-// Returns 0 and false if the counter does not exist or the decrement fails.
+// DecrBy decrements the counter for the given key by alpha.
+// Returns the new value and true if the decrement succeeded.
+// Returns 0 and false if the counter does not exist, is expired, or if the decrement would result in a negative value.
 func (s *ShardedCounter) DecrBy(key string, alpha int64) (int64, bool) {
 	shard := s.getShard(key)
 	c, exist := shard.Get(key)
@@ -159,8 +166,9 @@ func (s *ShardedCounter) DecrBy(key string, alpha int64) (int64, bool) {
 	return c.GetValue(), true
 }
 
-// Reset resets the counter with the given key to 0.
-// Returns false if the counter does not exist.
+// Reset resets the counter value for the given key to 0.
+// Returns true if the counter was reset.
+// Returns false if the counter does not exist or is expired.
 func (s *ShardedCounter) Reset(key string) bool {
 	shard := s.getShard(key)
 	c, ok := shard.Get(key)
@@ -175,7 +183,7 @@ func (s *ShardedCounter) Reset(key string) bool {
 	return true
 }
 
-// CleanExpired cleans expired counters.
+// CleanExpired removes all expired counters across all shards.
 func (s *ShardedCounter) CleanExpired() {
 	for _, shard := range s.shards {
 		shard.Clean(func(key string, counter *vals.Counter) bool {
@@ -184,7 +192,7 @@ func (s *ShardedCounter) CleanExpired() {
 	}
 }
 
-// Flush removes all counters from the shards.
+// Flush removes all counters across all shards.
 func (s *ShardedCounter) Flush() {
 	for _, shard := range s.shards {
 		shard.Flush()

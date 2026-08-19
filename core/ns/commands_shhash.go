@@ -1,8 +1,9 @@
 package ns
 
-// HGet retrieves a hash from the namespace by key.
-// Returns [ErrKeyNotFound] if the hash is not found.
+// HGet retrieves a copy of all field-value pairs for the given key from the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the hash does not exist or is expired.
 func (nm *NamespaceManager) HGet(ns, key string) (map[string]string, error) {
 	if ns == "" {
 		v, ok := nm.defaultNs.shhash.Get(key)
@@ -22,7 +23,8 @@ func (nm *NamespaceManager) HGet(ns, key string) (map[string]string, error) {
 	return v, nil
 }
 
-// HSet creates an empty hash for the given key.
+// HSet creates or overwrites a hash for the given key with optional TTL in the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HSet(ns, key string, ttl int64) error {
 	if ns == "" {
@@ -37,7 +39,8 @@ func (nm *NamespaceManager) HSet(ns, key string, ttl int64) error {
 	return nil
 }
 
-// HDelete deletes a hash from the namespace by key.
+// HDel removes a hash for the given key from the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HDel(ns, key string) error {
 	if ns == "" {
@@ -52,6 +55,10 @@ func (nm *NamespaceManager) HDel(ns, key string) error {
 	return nil
 }
 
+// HExpire sets the expiration time for the hash of the given key in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the hash does not exist or is expired.
 func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
 	if ns == "" {
 		ok := nm.defaultNs.shhash.Expire(key, ttl)
@@ -71,10 +78,11 @@ func (nm *NamespaceManager) HExpire(ns, key string, ttl int64) error {
 	return nil
 }
 
-// HTTL returns the time-to-live of the hash for the given key.
+// HTTL returns the time-to-live of the hash for the given key in seconds from the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns -1 if the hash has no expiration time.
+// Returns -2 if the hash does not exist or is expired.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns -1 and false if the key has no expiration time.
-// Returns -2 and false if the key does not exist.
 func (nm *NamespaceManager) HTTL(ns, key string) (int64, error) {
 	if ns == "" {
 		return nm.defaultNs.shhash.TTL(key), nil
@@ -86,6 +94,9 @@ func (nm *NamespaceManager) HTTL(ns, key string) (int64, error) {
 	return n.shhash.TTL(key), nil
 }
 
+// HExists checks whether an unexpired hash exists for the given key in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HExists(ns, key string) (bool, error) {
 	if ns == "" {
 		return nm.defaultNs.shhash.Exists(key), nil
@@ -97,7 +108,10 @@ func (nm *NamespaceManager) HExists(ns, key string) (bool, error) {
 	return n.shhash.Exists(key), nil
 }
 
-// HLEN returns the number of fields in the hash for the given key.
+// HLen returns the number of fields in the hash for the given key from the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the hash does not exist or is expired.
 func (nm *NamespaceManager) HLen(ns, key string) (int64, error) {
 	if ns == "" {
 		len, ok := nm.defaultNs.shhash.Len(key)
@@ -117,6 +131,10 @@ func (nm *NamespaceManager) HLen(ns, key string) (int64, error) {
 	return len, nil
 }
 
+// HKeys returns all field names in the hash for the given key from the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the hash does not exist or is expired.
 func (nm *NamespaceManager) HKeys(ns, key string) ([]string, error) {
 	if ns == "" {
 		keys, ok := nm.defaultNs.shhash.Keys(key)
@@ -136,7 +154,10 @@ func (nm *NamespaceManager) HKeys(ns, key string) ([]string, error) {
 	return keys, nil
 }
 
-// HValues returns the values of the hash for the given key.
+// HValues returns all field values in the hash for the given key from the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the hash does not exist or is expired.
 func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 	if ns == "" {
 		values, ok := nm.defaultNs.shhash.Values(key)
@@ -156,9 +177,10 @@ func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 	return values, nil
 }
 
-// HFGet retrieves a field from the hash for the given key and field.
-// Returns [ErrKeyNotFound] if the key or field does not exist.
+// HFGet retrieves the value of the specified field in the hash for the given key from the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the hash or field does not exist, or if the hash is expired.
 func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 	if ns == "" {
 		v, ok := nm.defaultNs.shhash.GetField(key, field)
@@ -178,8 +200,8 @@ func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 	return v, nil
 }
 
-// HFSet sets a field in the hash for the given key and field.
-// Creates hash if not exists.
+// HFSet sets or updates a field in the hash for the given key in the specified namespace. Creates hash if it does not exist.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HFSet(ns, key, field, value string) error {
 	if ns == "" {
@@ -194,7 +216,8 @@ func (nm *NamespaceManager) HFSet(ns, key, field, value string) error {
 	return nil
 }
 
-// HFDelete deletes a field from the hash for the given key and field.
+// HFDel removes a field from the hash for the given key in the specified namespace.
+// If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) HFDel(ns, key, field string) error {
 	if ns == "" {
