@@ -50,8 +50,7 @@ func (s *ShardedMap) Get(key string) (string, bool) {
 
 // Set sets or updates the value and optional TTL for the key in the sharded map.
 func (s *ShardedMap) Set(key, value string, ttl int64) bool {
-	i := vals.NewItem()
-	i.SetValue(value)
+	i := vals.NewItem(value)
 	if ttl > 0 {
 		i.Expire(ttl)
 	}

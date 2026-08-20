@@ -9,19 +9,16 @@ type Item struct {
 	expiresAt int64
 }
 
-// NewItem creates a new empty Item.
-func NewItem() *Item {
-	return &Item{}
+// NewItem creates a new Item.
+func NewItem(value string) *Item {
+	return &Item{
+		value: value,
+	}
 }
 
 // GetValue returns the string value of the Item.
 func (i *Item) GetValue() string {
 	return i.value
-}
-
-// SetValue sets the string value of the Item.
-func (i *Item) SetValue(value string) {
-	i.value = value
 }
 
 // IsExpired returns true if the Item has an expiration time and is expired.
