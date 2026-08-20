@@ -3,6 +3,7 @@ package ns
 import (
 	"sync"
 
+	"github.com/memap-project/memap/config"
 	"github.com/memap-project/memap/core/shard/shcounter"
 	"github.com/memap-project/memap/core/shard/shhash"
 	"github.com/memap-project/memap/core/shard/shmap"
@@ -11,18 +12,20 @@ import (
 // Namespace represents an isolated container storing maps, hashes, and counters.
 type Namespace struct {
 	mu        sync.RWMutex
+	cfg       *config.NamespaceConfig
 	shmap     *shmap.ShardedMap
 	shhash    *shhash.ShardedHash
 	shcounter *shcounter.ShardedCounter
 }
 
 // NewNamespace creates a new Namespace with initialized storage components.
-func NewNamespace() *Namespace {
+func NewNamespace(cfg *config.NamespaceConfig) *Namespace {
 	return &Namespace{
 		mu:        sync.RWMutex{},
-		shmap:     shmap.NewShardedMap(),
-		shhash:    shhash.NewShardedHash(),
-		shcounter: shcounter.NewShardedCounter(),
+		cfg:       cfg,
+		shmap:     shmap.NewShardedMap(cfg.ShardCounts.Shmap),
+		shhash:    shhash.NewShardedHash(cfg.ShardCounts.Shhash),
+		shcounter: shcounter.NewShardedCounter(cfg.ShardCounts.Shcounter),
 	}
 }
 

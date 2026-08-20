@@ -12,7 +12,7 @@ func (nm *NamespaceManager) GetNs(name string) (*Namespace, bool) {
 // Create creates a new namespace with the given name.
 // Returns [ErrNamespaceAlreadyExists] if the namespace already exists.
 func (nm *NamespaceManager) Create(name string) error {
-	ns := NewNamespace()
+	ns := NewNamespace(nm.cfg)
 	_, loaded := nm.namespaces.LoadOrStore(name, ns)
 	if loaded {
 		return ErrNamespaceAlreadyExists

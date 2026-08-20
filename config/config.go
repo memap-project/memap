@@ -11,5 +11,16 @@ type ServerConfig struct {
 }
 
 type CoreConfig struct {
-	CleanerInterval uint64 `yaml:"cleanerInterval"`
+	CleanerInterval int             `yaml:"cleanerInterval"`
+	Namespace       NamespaceConfig `yaml:"namespace"`
+}
+
+type NamespaceConfig struct {
+	ShardCounts ShardCounts `yaml:"shardCounts"`
+}
+
+type ShardCounts struct {
+	Shmap     uint8 `yaml:"shmap"`
+	Shhash    uint8 `yaml:"shhash"`
+	Shcounter uint8 `yaml:"shcounter"`
 }

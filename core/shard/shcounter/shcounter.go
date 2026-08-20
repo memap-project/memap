@@ -14,13 +14,13 @@ type ShardedCounter struct {
 }
 
 // NewShardedCounter creates a new ShardedCounter with default shard count (8).
-func NewShardedCounter() *ShardedCounter {
-	shards := make([]*shard.Shard[*vals.Counter], 8)
+func NewShardedCounter(shardCount uint8) *ShardedCounter {
+	shards := make([]*shard.Shard[*vals.Counter], shardCount)
 	for i := range shards {
 		shards[i] = shard.NewShard[*vals.Counter]()
 	}
 	return &ShardedCounter{
-		shardCount: 8,
+		shardCount: shardCount,
 		shards:     shards,
 	}
 }

@@ -14,13 +14,13 @@ type ShardedHash struct {
 }
 
 // NewShardedHash creates a new ShardedHash with default shard count (8).
-func NewShardedHash() *ShardedHash {
-	shards := make([]*shard.Shard[*vals.Hash], 8)
+func NewShardedHash(shardCount uint8) *ShardedHash {
+	shards := make([]*shard.Shard[*vals.Hash], shardCount)
 	for i := range shards {
 		shards[i] = shard.NewShard[*vals.Hash]()
 	}
 	return &ShardedHash{
-		shardCount: 8,
+		shardCount: shardCount,
 		shards:     shards,
 	}
 }

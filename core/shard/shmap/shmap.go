@@ -14,13 +14,13 @@ type ShardedMap struct {
 }
 
 // NewShardedMap creates a new ShardedMap with default shard count (8).
-func NewShardedMap() *ShardedMap {
-	shards := make([]*shard.Shard[*vals.Item], 8)
+func NewShardedMap(shardCount uint8) *ShardedMap {
+	shards := make([]*shard.Shard[*vals.Item], shardCount)
 	for i := range shards {
 		shards[i] = shard.NewShard[*vals.Item]()
 	}
 	return &ShardedMap{
-		shardCount: 8,
+		shardCount: shardCount,
 		shards:     shards,
 	}
 }

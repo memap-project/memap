@@ -7,7 +7,7 @@ import (
 
 // Cleaner executes a periodic cleanup function on a fixed interval until stopped or canceled.
 type Cleaner struct {
-	interval  uint64 // in seconds
+	interval  int // in seconds
 	cleanFunc func()
 	ctx       context.Context
 	cancel    context.CancelFunc
@@ -15,7 +15,7 @@ type Cleaner struct {
 
 // NewCleaner creates a new Cleaner with the given interval and cleanup function.
 // If parentCtx is nil, context.Background() is used.
-func NewCleaner(parentCtx context.Context, interval uint64, cleanFunc func()) *Cleaner {
+func NewCleaner(parentCtx context.Context, interval int, cleanFunc func()) *Cleaner {
 	if parentCtx == nil {
 		parentCtx = context.Background()
 	}

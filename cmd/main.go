@@ -16,9 +16,14 @@ func main() {
 		log.Fatal(err)
 		return
 	}
+	err = cfg.Validate()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	ctx := context.Background()
-	manager := ns.NewNamespaceManager()
+	manager := ns.NewNamespaceManager(&cfg.Core.Namespace)
 	cleaner := clean.NewCleaner(ctx, cfg.Core.CleanerInterval, manager.CleanExpired)
 	cleaner.Start()
 	defer cleaner.Stop()

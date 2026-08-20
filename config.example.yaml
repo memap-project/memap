@@ -1,5 +1,0 @@
-server:
-  port: 2118
-  maxConnections: 100
-core:
-  cleanerInterval: 10 # in seconds

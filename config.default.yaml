@@ -1,0 +1,10 @@
+server:
+  port: 2118
+  maxConnections: 100
+core:
+  cleanerInterval: 10 # in seconds
+  namespace:
+    shardCounts: # must be 2^n <= 2^7
+      shmap: 8
+      shhash: 8
+      shcounter: 8
