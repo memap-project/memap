@@ -30,6 +30,32 @@ func NewRingBuffer[T intstr](cap int64) *RingBuffer[T] {
 	}
 }
 
+// IsExpired returns true if the RingBuffer has an expiration time and is expired.
+// Returns false if the RingBuffer has no expiration time or is not yet expired.
+func (rb *RingBuffer[T]) IsExpired() bool {
+	rb.mu.RLock()
+	defer rb.mu.RUnlock()
+	if rb.expiresAt == 0 {
+		return false
+	}
+	return time.Now().Unix() > rb.expiresAt
+}
+
+// Expire sets the expiration time for the RingBuffer.
+// Returns false if the RingBuffer is already expired or if ttl is negative.
+func (rb *RingBuffer[T]) Expire(ttl int64) bool {
+	rb.mu.Lock()
+	defer rb.mu.Unlock()
+	if rb.IsExpired() {
+		return false
+	}
+	if ttl < 0 {
+		return false
+	}
+	rb.expiresAt = time.Now().Unix() + ttl
+	return true
+}
+
 // Push adds a value to the RingBuffer.
 func (rb *RingBuffer[T]) Push(val T) {
 	rb.mu.Lock()
@@ -58,49 +84,55 @@ func (rb *RingBuffer[T]) Pop() (T, bool) {
 	return val, true
 }
 
-// IsExpired returns true if the RingBuffer has an expiration time and is expired.
-// Returns false if the RingBuffer has no expiration time or is not yet expired.
-func (rb *RingBuffer[T]) IsExpired() bool {
+func (rb *RingBuffer[T]) At(index int64) (T, bool) {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()
-	if rb.expiresAt == 0 {
-		return false
+	var zero T
+	if index < 0 || index >= rb.len {
+		return zero, false
 	}
-	return time.Now().Unix() > rb.expiresAt
+	val := rb.buf[(rb.head+index)%rb.cap]
+	return val, true
 }
 
-// Expire sets the expiration time for the RingBuffer.
-// Returns false if the RingBuffer is already expired or if ttl is negative.
-func (rb *RingBuffer[T]) Expire(ttl int64) bool {
-	rb.mu.Lock()
-	defer rb.mu.Unlock()
-	if rb.IsExpired() {
-		return false
-	}
-	if ttl < 0 {
-		return false
-	}
-	rb.expiresAt = time.Now().Unix() + ttl
-	return true
-}
-
-// Ring retrieves a copy of the RingBuffer's contents as a slice.
-func (rb *RingBuffer[T]) Ring() []T {
+// Slice retrieves a copy of the RingBuffer's contents as a slice.
+func (rb *RingBuffer[T]) Slice() []T {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()
 	result := make([]T, rb.len)
 	if rb.len == 0 {
 		return result
 	}
-	firstPart := rb.cap - rb.head
-	if firstPart > rb.len {
-		firstPart = rb.len
-	}
+	firstPart := min(rb.cap-rb.head, rb.len)
 	copy(result, rb.buf[rb.head:rb.head+firstPart])
 	if secondPart := rb.len - firstPart; secondPart > 0 {
 		copy(result[firstPart:], rb.buf[:secondPart])
 	}
 	return result
+}
+
+// Peek returns the value at the head(oldest) of the RingBuffer without removing it.
+func (rb *RingBuffer[T]) Peek() (T, bool) {
+	rb.mu.RLock()
+	defer rb.mu.RUnlock()
+	var zero T
+	if rb.len == 0 {
+		return zero, false
+	}
+	val := rb.buf[rb.head]
+	return val, true
+}
+
+// Back returns the value at the tail(newest) of the RingBuffer without removing it.
+func (rb *RingBuffer[T]) Back() (T, bool) {
+	rb.mu.RLock()
+	defer rb.mu.RUnlock()
+	var zero T
+	if rb.len == 0 {
+		return zero, false
+	}
+	val := rb.buf[rb.tail-1]
+	return val, true
 }
 
 // Cap returns the capacity of the RingBuffer.
@@ -117,16 +149,25 @@ func (rb *RingBuffer[T]) Len() int64 {
 	return rb.len
 }
 
-// Head returns the index of the head of the RingBuffer.
-func (rb *RingBuffer[T]) Head() int64 {
+// IsEmpty returns true if the RingBuffer is empty.
+func (rb *RingBuffer[T]) IsEmpty() bool {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()
-	return rb.head
+	return rb.len == 0
 }
 
-// Tail returns the index of the tail of the RingBuffer.
-func (rb *RingBuffer[T]) Tail() int64 {
+// IsFull returns true if the RingBuffer is full.
+func (rb *RingBuffer[T]) IsFull() bool {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()
-	return rb.tail
+	return rb.len == rb.cap
+}
+
+// Reset resets the RingBuffer to its initial state.
+func (rb *RingBuffer[T]) Reset() {
+	rb.mu.Lock()
+	defer rb.mu.Unlock()
+	rb.len = 0
+	rb.head = 0
+	rb.tail = 0
 }
