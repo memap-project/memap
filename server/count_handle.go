@@ -3,23 +3,23 @@ package server
 import memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 
 func (s *Server) handleCINIT(req *memapv1.Request) *memapv1.Response {
-	err := s.manager.Init(req.GetNamespace(), req.GetKey(), req.GetLimit(), req.GetTtl())
+	err := s.manager.CInit(req.GetNamespace(), req.GetKey(), req.GetLimit(), req.GetTtl())
 	if err != nil {
 		return errResponse(err)
 	}
 	return okEmpty()
 }
 
-func (s *Server) handleSLIMIT(req *memapv1.Request) *memapv1.Response {
-	err := s.manager.SLimit(req.GetNamespace(), req.GetKey(), req.GetLimit())
+func (s *Server) handleCSLIMIT(req *memapv1.Request) *memapv1.Response {
+	err := s.manager.CSLimit(req.GetNamespace(), req.GetKey(), req.GetLimit())
 	if err != nil {
 		return errResponse(err)
 	}
 	return okEmpty()
 }
 
-func (s *Server) handleGLIMIT(req *memapv1.Request) *memapv1.Response {
-	limit, err := s.manager.GLimit(req.GetNamespace(), req.GetKey())
+func (s *Server) handleCGLIMIT(req *memapv1.Request) *memapv1.Response {
+	limit, err := s.manager.CGLimit(req.GetNamespace(), req.GetKey())
 	if err != nil {
 		return errResponse(err)
 	}
@@ -60,16 +60,16 @@ func (s *Server) handleCTTL(req *memapv1.Request) *memapv1.Response {
 	return okIntValue(ttl)
 }
 
-func (s *Server) handleINCRBY(req *memapv1.Request) *memapv1.Response {
-	count, err := s.manager.IncrBy(req.GetNamespace(), req.GetKey(), req.GetIntValue())
+func (s *Server) handleCINCRBY(req *memapv1.Request) *memapv1.Response {
+	count, err := s.manager.CIncrBy(req.GetNamespace(), req.GetKey(), req.GetIntValue())
 	if err != nil {
 		return errResponse(err)
 	}
 	return okIntValue(count)
 }
 
-func (s *Server) handleDECRBY(req *memapv1.Request) *memapv1.Response {
-	count, err := s.manager.DecrBy(req.GetNamespace(), req.GetKey(), req.GetIntValue())
+func (s *Server) handleCDECRBY(req *memapv1.Request) *memapv1.Response {
+	count, err := s.manager.CDecrBy(req.GetNamespace(), req.GetKey(), req.GetIntValue())
 	if err != nil {
 		return errResponse(err)
 	}

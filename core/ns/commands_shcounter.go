@@ -4,7 +4,7 @@ package ns
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyAlreadyExists] if a counter already exists for the given key.
-func (nm *NamespaceManager) Init(ns, key string, limit, ttl int64) error {
+func (nm *NamespaceManager) CInit(ns, key string, limit, ttl int64) error {
 	if ns == "" {
 		ok := nm.defaultNs.shcounter.Init(key, limit, ttl)
 		if !ok {
@@ -28,7 +28,7 @@ func (nm *NamespaceManager) Init(ns, key string, limit, ttl int64) error {
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist or is expired.
-func (nm *NamespaceManager) SLimit(ns, key string, limit int64) error {
+func (nm *NamespaceManager) CSLimit(ns, key string, limit int64) error {
 	if ns == "" {
 		ok := nm.defaultNs.shcounter.SetLimit(key, limit)
 		if !ok {
@@ -52,7 +52,7 @@ func (nm *NamespaceManager) SLimit(ns, key string, limit int64) error {
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist or is expired.
-func (nm *NamespaceManager) GLimit(ns, key string) (int64, error) {
+func (nm *NamespaceManager) CGLimit(ns, key string) (int64, error) {
 	if ns == "" {
 		l, ok := nm.defaultNs.shcounter.GetLimit(key)
 		if !ok {
@@ -159,7 +159,7 @@ func (nm *NamespaceManager) CTTL(ns, key string) (int64, error) {
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist, is expired, or if the increment exceeds limit.
-func (nm *NamespaceManager) IncrBy(ns, key string, alpha int64) (int64, error) {
+func (nm *NamespaceManager) CIncrBy(ns, key string, alpha int64) (int64, error) {
 	if ns == "" {
 		count, ok := nm.defaultNs.shcounter.IncrBy(key, alpha)
 		if !ok {
@@ -182,7 +182,7 @@ func (nm *NamespaceManager) IncrBy(ns, key string, alpha int64) (int64, error) {
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
 // Returns [ErrKeyNotFound] if the counter does not exist, is expired, or if the decrement would result in a negative value.
-func (nm *NamespaceManager) DecrBy(ns, key string, alpha int64) (int64, error) {
+func (nm *NamespaceManager) CDecrBy(ns, key string, alpha int64) (int64, error) {
 	if ns == "" {
 		count, ok := nm.defaultNs.shcounter.DecrBy(key, alpha)
 		if !ok {
