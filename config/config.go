@@ -23,4 +23,5 @@ type ShardCounts struct {
 	Shmap     uint8 `yaml:"shmap"`
 	Shhash    uint8 `yaml:"shhash"`
 	Shcounter uint8 `yaml:"shcounter"`
+	Shrbuffer uint8 `yaml:"shrbuffer"`
 }

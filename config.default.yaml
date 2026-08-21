@@ -8,3 +8,4 @@ core:
       shmap: 8
       shhash: 8
       shcounter: 8
+      shrbuffer: 8

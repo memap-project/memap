@@ -7,6 +7,7 @@ import (
 	"github.com/memap-project/memap/core/shard/shcounter"
 	"github.com/memap-project/memap/core/shard/shhash"
 	"github.com/memap-project/memap/core/shard/shmap"
+	"github.com/memap-project/memap/core/shard/shrbuffer"
 )
 
 // Namespace represents an isolated container storing maps, hashes, and counters.
@@ -16,6 +17,7 @@ type Namespace struct {
 	shmap     *shmap.ShardedMap
 	shhash    *shhash.ShardedHash
 	shcounter *shcounter.ShardedCounter
+	shrbuffer *shrbuffer.ShardedRingBuffer
 }
 
 // NewNamespace creates a new Namespace with initialized storage components.
@@ -26,6 +28,7 @@ func NewNamespace(cfg *config.NamespaceConfig) *Namespace {
 		shmap:     shmap.NewShardedMap(cfg.ShardCounts.Shmap),
 		shhash:    shhash.NewShardedHash(cfg.ShardCounts.Shhash),
 		shcounter: shcounter.NewShardedCounter(cfg.ShardCounts.Shcounter),
+		shrbuffer: shrbuffer.NewShardedRingBuffer(cfg.ShardCounts.Shrbuffer),
 	}
 }
 
