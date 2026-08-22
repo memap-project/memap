@@ -1,5 +1,9 @@
 package ns
 
+// Init initializes a ring buffer with the given capacity and optional TTL in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyAlreadyExists] if a counter already exists for the given key.
 func (nm *NamespaceManager) BInit(ns, key string, capacity, ttl int64) error {
 	if ns == "" {
 		ok := nm.defaultNs.shrbuffer.Init(key, capacity, ttl)
@@ -19,6 +23,10 @@ func (nm *NamespaceManager) BInit(ns, key string, capacity, ttl int64) error {
 	return nil
 }
 
+// Push pushes a value to the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BPush(ns, key, value string) error {
 	if ns == "" {
 		ok := nm.defaultNs.shrbuffer.Push(key, value)
@@ -38,6 +46,10 @@ func (nm *NamespaceManager) BPush(ns, key, value string) error {
 	return nil
 }
 
+// Pop pops a value from the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BPop(ns, key string) (string, error) {
 	if ns == "" {
 		value, ok := nm.defaultNs.shrbuffer.Pop(key)
@@ -57,6 +69,10 @@ func (nm *NamespaceManager) BPop(ns, key string) (string, error) {
 	return value, nil
 }
 
+// At returns the value at the given index in the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BAt(ns, key string, index int64) (string, error) {
 	if ns == "" {
 		value, ok := nm.defaultNs.shrbuffer.At(key, index)
@@ -76,6 +92,10 @@ func (nm *NamespaceManager) BAt(ns, key string, index int64) (string, error) {
 	return value, nil
 }
 
+// Slice returns all values in the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BSlice(ns, key string) ([]string, error) {
 	if ns == "" {
 		values, ok := nm.defaultNs.shrbuffer.Slice(key)
@@ -95,6 +115,10 @@ func (nm *NamespaceManager) BSlice(ns, key string) ([]string, error) {
 	return values, nil
 }
 
+// Peek returns the value at the head (oldest) of the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BPeek(ns, key string) (string, error) {
 	if ns == "" {
 		value, ok := nm.defaultNs.shrbuffer.Peek(key)
@@ -114,6 +138,10 @@ func (nm *NamespaceManager) BPeek(ns, key string) (string, error) {
 	return value, nil
 }
 
+// Back returns the value at the tail (newest) of the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BBack(ns, key string) (string, error) {
 	if ns == "" {
 		value, ok := nm.defaultNs.shrbuffer.Back(key)
@@ -133,6 +161,10 @@ func (nm *NamespaceManager) BBack(ns, key string) (string, error) {
 	return value, nil
 }
 
+// Cap returns the capacity of the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BCap(ns, key string) (int64, error) {
 	if ns == "" {
 		cap, ok := nm.defaultNs.shrbuffer.Cap(key)
@@ -152,6 +184,10 @@ func (nm *NamespaceManager) BCap(ns, key string) (int64, error) {
 	return cap, nil
 }
 
+// Len returns the number of values in the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BLen(ns, key string) (int64, error) {
 	if ns == "" {
 		len, ok := nm.defaultNs.shrbuffer.Len(key)
@@ -171,6 +207,9 @@ func (nm *NamespaceManager) BLen(ns, key string) (int64, error) {
 	return len, nil
 }
 
+// Reset resets the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) BReset(ns, key string) error {
 	if ns == "" {
 		nm.defaultNs.shrbuffer.Reset(key)
@@ -184,6 +223,9 @@ func (nm *NamespaceManager) BReset(ns, key string) error {
 	return nil
 }
 
+// Del deletes the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
 func (nm *NamespaceManager) BDel(ns, key string) error {
 	if ns == "" {
 		nm.defaultNs.shrbuffer.Delete(key)
@@ -197,6 +239,10 @@ func (nm *NamespaceManager) BDel(ns, key string) error {
 	return nil
 }
 
+// Expire sets the expiration time of the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BExpire(ns, key string, ttl int64) error {
 	if ns == "" {
 		ok := nm.defaultNs.shrbuffer.Expire(key, ttl)
@@ -216,6 +262,10 @@ func (nm *NamespaceManager) BExpire(ns, key string, ttl int64) error {
 	return nil
 }
 
+// TTL returns the time-to-live of the ring buffer in the specified namespace.
+// If ns is empty, the default namespace is used.
+// Returns [ErrNamespaceNotFound] if the namespace does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist.
 func (nm *NamespaceManager) BTTL(ns, key string) (int64, error) {
 	if ns == "" {
 		ttl, ok := nm.defaultNs.shrbuffer.TTL(key)
