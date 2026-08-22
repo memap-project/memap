@@ -127,43 +127,43 @@ func (s *ShardedCounter) TTL(key string) (int64, bool) {
 }
 
 // IncrBy increments the counter for the given key by alpha.
-// Returns the new value and true if the increment succeeded.
-// Returns 0 and false if the counter does not exist, is expired, or if the increment exceeds limit.
-func (s *ShardedCounter) IncrBy(key string, alpha int64) (int64, bool) {
-	shard := s.getShard(key)
-	c, ok := shard.Get(key)
+// Returns the new value and StatusSuccess if the increment succeeded.
+// Returns 0 and a failure Status if the counter does not exist, is expired, or if the increment exceeds limit.
+func (s *ShardedCounter) IncrBy(key string, alpha int64) (int64, shard.Status) {
+	sh := s.getShard(key)
+	c, ok := sh.Get(key)
 	if !ok {
-		return 0, false
+		return 0, shard.StatusNotFound
 	}
 	if c.IsExpired() {
-		shard.Delete(key)
-		return 0, false
+		sh.Delete(key)
+		return 0, shard.StatusExpired
 	}
 	ok = c.IncrBy(alpha)
 	if !ok {
-		return 0, false
+		return 0, shard.StatusLimitExceeded
 	}
-	return c.GetValue(), true
+	return c.GetValue(), shard.StatusSuccess
 }
 
 // DecrBy decrements the counter for the given key by alpha.
-// Returns the new value and true if the decrement succeeded.
-// Returns 0 and false if the counter does not exist, is expired, or if the decrement would result in a negative value.
-func (s *ShardedCounter) DecrBy(key string, alpha int64) (int64, bool) {
-	shard := s.getShard(key)
-	c, exist := shard.Get(key)
+// Returns the new value and StatusSuccess if the decrement succeeded.
+// Returns 0 and a failure Status if the counter does not exist, is expired, or if the decrement would result in a negative value.
+func (s *ShardedCounter) DecrBy(key string, alpha int64) (int64, shard.Status) {
+	sh := s.getShard(key)
+	c, exist := sh.Get(key)
 	if !exist {
-		return 0, false
+		return 0, shard.StatusNotFound
 	}
 	if c.IsExpired() {
-		shard.Delete(key)
-		return 0, false
+		sh.Delete(key)
+		return 0, shard.StatusExpired
 	}
 	ok := c.DecrBy(alpha)
 	if !ok {
-		return 0, false
+		return 0, shard.StatusLimitExceeded
 	}
-	return c.GetValue(), true
+	return c.GetValue(), shard.StatusSuccess
 }
 
 // Reset resets the counter value for the given key to 0.

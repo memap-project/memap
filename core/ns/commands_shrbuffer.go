@@ -49,47 +49,37 @@ func (nm *NamespaceManager) BPush(ns, key, value string) error {
 // Pop pops a value from the ring buffer in the specified namespace.
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns [ErrKeyNotFound] if the key does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist or is expired.
+// Returns [ErrBufferEmpty] if the ring buffer is empty.
 func (nm *NamespaceManager) BPop(ns, key string) (string, error) {
 	if ns == "" {
-		value, ok := nm.defaultNs.shrbuffer.Pop(key)
-		if !ok {
-			return value, ErrKeyNotFound
-		}
-		return value, nil
+		value, status := nm.defaultNs.shrbuffer.Pop(key)
+		return value, statusToError(status)
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return "", ErrNamespaceNotFound
 	}
-	value, ok := n.shrbuffer.Pop(key)
-	if !ok {
-		return value, ErrKeyNotFound
-	}
-	return value, nil
+	value, status := n.shrbuffer.Pop(key)
+	return value, statusToError(status)
 }
 
 // At returns the value at the given index in the ring buffer in the specified namespace.
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns [ErrKeyNotFound] if the key does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist or is expired.
+// Returns [ErrIndexOutOfBounds] if the index is out of range.
 func (nm *NamespaceManager) BAt(ns, key string, index int64) (string, error) {
 	if ns == "" {
-		value, ok := nm.defaultNs.shrbuffer.At(key, index)
-		if !ok {
-			return value, ErrKeyNotFound
-		}
-		return value, nil
+		value, status := nm.defaultNs.shrbuffer.At(key, index)
+		return value, statusToError(status)
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return "", ErrNamespaceNotFound
 	}
-	value, ok := n.shrbuffer.At(key, index)
-	if !ok {
-		return value, ErrKeyNotFound
-	}
-	return value, nil
+	value, status := n.shrbuffer.At(key, index)
+	return value, statusToError(status)
 }
 
 // Slice returns all values in the ring buffer in the specified namespace.
@@ -118,47 +108,37 @@ func (nm *NamespaceManager) BSlice(ns, key string) ([]string, error) {
 // Peek returns the value at the head (oldest) of the ring buffer in the specified namespace.
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns [ErrKeyNotFound] if the key does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist or is expired.
+// Returns [ErrBufferEmpty] if the ring buffer is empty.
 func (nm *NamespaceManager) BPeek(ns, key string) (string, error) {
 	if ns == "" {
-		value, ok := nm.defaultNs.shrbuffer.Peek(key)
-		if !ok {
-			return value, ErrKeyNotFound
-		}
-		return value, nil
+		value, status := nm.defaultNs.shrbuffer.Peek(key)
+		return value, statusToError(status)
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return "", ErrNamespaceNotFound
 	}
-	value, ok := n.shrbuffer.Peek(key)
-	if !ok {
-		return value, ErrKeyNotFound
-	}
-	return value, nil
+	value, status := n.shrbuffer.Peek(key)
+	return value, statusToError(status)
 }
 
 // Back returns the value at the tail (newest) of the ring buffer in the specified namespace.
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns [ErrKeyNotFound] if the key does not exist.
+// Returns [ErrKeyNotFound] if the key does not exist or is expired.
+// Returns [ErrBufferEmpty] if the ring buffer is empty.
 func (nm *NamespaceManager) BBack(ns, key string) (string, error) {
 	if ns == "" {
-		value, ok := nm.defaultNs.shrbuffer.Back(key)
-		if !ok {
-			return value, ErrKeyNotFound
-		}
-		return value, nil
+		value, status := nm.defaultNs.shrbuffer.Back(key)
+		return value, statusToError(status)
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return "", ErrNamespaceNotFound
 	}
-	value, ok := n.shrbuffer.Back(key)
-	if !ok {
-		return value, ErrKeyNotFound
-	}
-	return value, nil
+	value, status := n.shrbuffer.Back(key)
+	return value, statusToError(status)
 }
 
 // Cap returns the capacity of the ring buffer in the specified namespace.

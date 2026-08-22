@@ -111,6 +111,7 @@ func (rb *RingBuffer[T]) At(index int64) (T, bool) {
 }
 
 // Slice retrieves a copy of all current elements in logical order (oldest to newest).
+// Returns nil if the RingBuffer is empty.
 func (rb *RingBuffer[T]) Slice() []T {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()

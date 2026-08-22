@@ -145,17 +145,23 @@ func (s *ShardedHash) Values(key string) ([]string, bool) {
 }
 
 // GetField retrieves the value of the specified field from the hash for the given key.
-// Returns empty string and false if the hash or field does not exist, or if the hash is expired.
-func (s *ShardedHash) GetField(key string, field string) (string, bool) {
-	h, ok := s.getShard(key).Get(key)
+// Returns value and StatusSuccess if found.
+// Returns empty string and failure Status if the hash or field does not exist, or if the hash is expired.
+func (s *ShardedHash) GetField(key string, field string) (string, shard.Status) {
+	sh := s.getShard(key)
+	h, ok := sh.Get(key)
 	if !ok {
-		return "", false
+		return "", shard.StatusNotFound
 	}
 	if h.IsExpired() {
-		s.getShard(key).Delete(key)
-		return "", false
+		sh.Delete(key)
+		return "", shard.StatusExpired
 	}
-	return h.Get(field)
+	v, ok := h.Get(field)
+	if !ok {
+		return "", shard.StatusFieldNotFound
+	}
+	return v, shard.StatusSuccess
 }
 
 // SetField sets or updates a field in the hash for the given key. Creates a new hash if one does not exist.

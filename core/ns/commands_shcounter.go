@@ -158,45 +158,35 @@ func (nm *NamespaceManager) CTTL(ns, key string) (int64, error) {
 // IncrBy increments the counter by alpha in the specified namespace.
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns [ErrKeyNotFound] if the counter does not exist, is expired, or if the increment exceeds limit.
+// Returns [ErrKeyNotFound] if the counter does not exist or is expired.
+// Returns [ErrLimitExceeded] if the increment exceeds limit.
 func (nm *NamespaceManager) CIncrBy(ns, key string, alpha int64) (int64, error) {
 	if ns == "" {
-		count, ok := nm.defaultNs.shcounter.IncrBy(key, alpha)
-		if !ok {
-			return count, ErrKeyNotFound
-		}
-		return count, nil
+		count, status := nm.defaultNs.shcounter.IncrBy(key, alpha)
+		return count, statusToError(status)
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	count, ok := n.shcounter.IncrBy(key, alpha)
-	if !ok {
-		return 0, ErrKeyNotFound
-	}
-	return count, nil
+	count, status := n.shcounter.IncrBy(key, alpha)
+	return count, statusToError(status)
 }
 
 // DecrBy decrements the counter by alpha in the specified namespace.
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns [ErrKeyNotFound] if the counter does not exist, is expired, or if the decrement would result in a negative value.
+// Returns [ErrKeyNotFound] if the counter does not exist or is expired.
+// Returns [ErrLimitExceeded] if the decrement would result in a negative value.
 func (nm *NamespaceManager) CDecrBy(ns, key string, alpha int64) (int64, error) {
 	if ns == "" {
-		count, ok := nm.defaultNs.shcounter.DecrBy(key, alpha)
-		if !ok {
-			return 0, ErrKeyNotFound
-		}
-		return count, nil
+		count, status := nm.defaultNs.shcounter.DecrBy(key, alpha)
+		return count, statusToError(status)
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return 0, ErrNamespaceNotFound
 	}
-	count, ok := n.shcounter.DecrBy(key, alpha)
-	if !ok {
-		return 0, ErrKeyNotFound
-	}
-	return count, nil
+	count, status := n.shcounter.DecrBy(key, alpha)
+	return count, statusToError(status)
 }

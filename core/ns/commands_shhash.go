@@ -180,24 +180,19 @@ func (nm *NamespaceManager) HValues(ns, key string) ([]string, error) {
 // HFGet retrieves the value of the specified field in the hash for the given key from the specified namespace.
 // If ns is empty, the default namespace is used.
 // Returns [ErrNamespaceNotFound] if the namespace does not exist.
-// Returns [ErrKeyNotFound] if the hash or field does not exist, or if the hash is expired.
+// Returns [ErrKeyNotFound] if the hash does not exist or is expired.
+// Returns [ErrFieldNotFound] if the field does not exist.
 func (nm *NamespaceManager) HFGet(ns, key, field string) (string, error) {
 	if ns == "" {
-		v, ok := nm.defaultNs.shhash.GetField(key, field)
-		if !ok {
-			return v, ErrKeyNotFound
-		}
-		return v, nil
+		v, status := nm.defaultNs.shhash.GetField(key, field)
+		return v, statusToError(status)
 	}
 	n, exists := nm.GetNs(ns)
 	if !exists {
 		return "", ErrNamespaceNotFound
 	}
-	v, ok := n.shhash.GetField(key, field)
-	if !ok {
-		return v, ErrKeyNotFound
-	}
-	return v, nil
+	v, status := n.shhash.GetField(key, field)
+	return v, statusToError(status)
 }
 
 // HFSet sets or updates a field in the hash for the given key in the specified namespace. Creates hash if it does not exist.
