@@ -37,6 +37,7 @@ func (n *Namespace) CleanExpired() {
 	n.shmap.CleanExpired()
 	n.shhash.CleanExpired()
 	n.shcounter.CleanExpired()
+	n.shrbuffer.CleanExpired()
 }
 
 // Flush removes all keys across all storage components in the namespace.
@@ -44,4 +45,5 @@ func (n *Namespace) Flush() {
 	n.shmap.Flush()
 	n.shhash.Flush()
 	n.shcounter.Flush()
+	n.shrbuffer.Flush()
 }
