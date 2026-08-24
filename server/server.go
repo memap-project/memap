@@ -6,8 +6,8 @@ import (
 	"net"
 
 	"github.com/dmi3midd/protorw"
+	"github.com/memap-project/memap-core/ns"
 	"github.com/memap-project/memap/config"
-	"github.com/memap-project/memap/core/ns"
 
 	memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 )

@@ -35,7 +35,7 @@ func (s *Server) handleCGET(req *memapv1.Request) *memapv1.Response {
 }
 
 func (s *Server) handleCDEL(req *memapv1.Request) *memapv1.Response {
-	err := s.manager.Del(req.GetNamespace(), req.GetKey())
+	err := s.manager.CDel(req.GetNamespace(), req.GetKey())
 	if err != nil {
 		return errResponse(err)
 	}
