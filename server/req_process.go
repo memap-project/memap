@@ -31,7 +31,6 @@ var commandHandlers = map[memapv1.CommandType]commandHandler{
 	memapv1.CommandType_HFGET:   (*Server).handleHFGET,
 	memapv1.CommandType_HFDEL:   (*Server).handleHFDEL,
 
-	memapv1.CommandType_CINIT:   (*Server).handleCINIT,
 	memapv1.CommandType_CSLIMIT: (*Server).handleCSLIMIT,
 	memapv1.CommandType_CGLIMIT: (*Server).handleCGLIMIT,
 	memapv1.CommandType_CGET:    (*Server).handleCGET,

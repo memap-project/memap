@@ -2,14 +2,6 @@ package server
 
 import memapv1 "github.com/memap-project/memap-proto/gen/memapv1/go"
 
-func (s *Server) handleCINIT(req *memapv1.Request) *memapv1.Response {
-	err := s.manager.CInit(req.GetNamespace(), req.GetKey(), req.GetLimit(), req.GetTtl())
-	if err != nil {
-		return errResponse(err)
-	}
-	return okEmpty()
-}
-
 func (s *Server) handleCSLIMIT(req *memapv1.Request) *memapv1.Response {
 	err := s.manager.CSLimit(req.GetNamespace(), req.GetKey(), req.GetLimit())
 	if err != nil {
