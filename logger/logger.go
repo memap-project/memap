@@ -1,45 +1,28 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
-func SystemLogPath(appName string) string {
-	var dir string
-	switch runtime.GOOS {
-	case "windows":
-		programData := os.Getenv("ProgramData")
-		if programData == "" {
-			programData = `C:\ProgramData`
-		}
-		dir = filepath.Join(programData, appName, "logs")
-	case "darwin":
-		dir = filepath.Join("/Library/Logs", appName)
-	default:
-		dir = filepath.Join("/var/log", appName)
+const (
+	logDir  = "logs"
+	logFile = "memap.log"
+)
+
+// Setup initializes JSON logging to both stdout and a local log file inside the logs/ directory.
+func Setup() (*os.File, error) {
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create log directory: %w", err)
 	}
 
-	return filepath.Join(dir, appName+".log")
-}
-
-func Setup(logPath string) (*os.File, error) {
-	if logPath == "" {
-		logPath = SystemLogPath("memap")
-	}
-
-	if dir := filepath.Dir(logPath); dir != "" {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return nil, err
-		}
-	}
-
-	file, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	path := filepath.Join(logDir, logFile)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
 
 	multiWriter := io.MultiWriter(os.Stdout, file)

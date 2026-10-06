@@ -32,7 +32,7 @@ func main() {
 	}
 	slog.Info("config loaded")
 
-	file, err := logger.Setup(cfg.Logger.LogPath)
+	file, err := logger.Setup()
 	if err != nil {
 		slog.Error("failed to setup logger", slog.String("error", err.Error()))
 		os.Exit(1)

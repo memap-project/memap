@@ -1,3 +1,5 @@
 tmp
 main
 config.yaml
+logs/
+*.log

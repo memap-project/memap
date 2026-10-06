@@ -1,0 +1,26 @@
+# Stage 1: Build Go binary
+FROM golang:1.26-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/memap ./cmd/main.go
+
+# Stage 2: Final minimal runtime image
+FROM alpine:3.22
+
+WORKDIR /app
+
+COPY --from=builder /app/memap .
+
+COPY config.default.yaml ./config.yaml
+
+RUN mkdir -p /app/logs
+
+EXPOSE 2118
+
+ENTRYPOINT ["./memap"]

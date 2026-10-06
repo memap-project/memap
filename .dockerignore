@@ -1,0 +1,29 @@
+# VCS & Git
+.git
+.gitignore
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Local configs (do not bake local overrides into image)
+config.yaml
+
+# Build artifacts & temp
+bin/
+main
+memap
+tmp/
+coverage.out
+*.test
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore

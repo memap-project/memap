@@ -2,8 +2,6 @@ server:
   port: 2118
   maxConnections: 100
   idleTimeout: 60 # in seconds
-logger:
-  logPath: ""
 core:
   cleanerInterval: 10 # in seconds
   namespace:
@@ -12,3 +10,4 @@ core:
       shhash: 8
       shcounter: 8
       shrbuffer: 8
+      shset: 8

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -8,9 +9,17 @@ import (
 )
 
 func Load() (*Config, error) {
-	data, err := os.ReadFile("./config.yaml")
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "./config.yaml"
+		if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
+			configPath = "./config.default.yaml"
+		}
+	}
+
+	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		return nil, fmt.Errorf("failed to read config file (%s): %w", configPath, err)
 	}
 
 	cfg := &Config{}
