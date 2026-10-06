@@ -54,6 +54,14 @@ var commandHandlers = map[memapv1.CommandType]commandHandler{
 	memapv1.CommandType_BEXPIRE: (*Server).handleBEXPIRE,
 	memapv1.CommandType_BTTL:    (*Server).handleBTTL,
 
+	memapv1.CommandType_SADD:      (*Server).handleSADD,
+	memapv1.CommandType_SREMOVE:   (*Server).handleSREMOVE,
+	memapv1.CommandType_SISMEMBER: (*Server).handleSISMEMBER,
+	memapv1.CommandType_SCARD:     (*Server).handleSCARD,
+	memapv1.CommandType_SMEMBERS:  (*Server).handleSMEMBERS,
+	memapv1.CommandType_SEXPIRE:   (*Server).handleSEXPIRE,
+	memapv1.CommandType_STTL:      (*Server).handleSTTL,
+
 	memapv1.CommandType_PING: func(s *Server, req *memapv1.Request) *memapv1.Response {
 		return okValue("PONG")
 	},
