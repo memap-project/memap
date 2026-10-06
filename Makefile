@@ -1,4 +1,10 @@
-.PHONY: build clean run watch
+.PHONY: build clean run watch docker-build docker-run docker-stop docker-logs compose-up compose-down
+
+# Variables
+IMAGE_NAME     ?= memap
+TAG            ?= latest
+CONTAINER_NAME ?= memap
+PORT           ?= 2118
 
 # Test the application without caching
 test:
@@ -20,12 +26,11 @@ clean:
 	@echo "Cleaning..."
 	@rm -f main
 
-# Run the application
+# Run the application locally
 run:
 	@go run ./cmd
 
 # Live Reload
-# Locate air binary path
 AIR_BIN := $(shell which air 2>/dev/null || echo "$(shell go env GOPATH)/bin/air")
 
 watch:
@@ -45,3 +50,26 @@ watch:
 			exit 1; \
 		fi; \
 	fi
+
+docker-build:
+	@echo "Building docker image $(IMAGE_NAME):$(TAG)..."
+	@docker build -t $(IMAGE_NAME):$(TAG) .
+
+docker-run:
+	@echo "Running container $(CONTAINER_NAME)..."
+	@docker run -d --name $(CONTAINER_NAME) -p $(PORT):$(PORT) --restart unless-stopped $(IMAGE_NAME):$(TAG)
+
+docker-stop:
+	@echo "Stopping and removing container $(CONTAINER_NAME)..."
+	@docker stop $(CONTAINER_NAME) 2>/dev/null || true
+	@docker rm $(CONTAINER_NAME) 2>/dev/null || true
+
+docker-logs:
+	@docker logs -f $(CONTAINER_NAME)
+
+# Docker Compose
+compose-up:
+	@docker compose up -d
+
+compose-down:
+	@docker compose down

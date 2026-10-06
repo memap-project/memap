@@ -1,5 +1,6 @@
 services:
   memap:
+    image: memap:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -7,6 +8,6 @@ services:
     restart: unless-stopped
     ports:
       - "2118:2118"
-    volumes:
+    # volumes:
       # If you want to use your own config file, uncomment the line below
       # - ./config.yaml:/app/config.yaml:ro
