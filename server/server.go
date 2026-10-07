@@ -24,6 +24,7 @@ type Server struct {
 	listener   net.Listener
 	wg         sync.WaitGroup
 	inShutdown atomic.Bool
+	conns      sync.Map // tracks active net.Conn -> struct{}
 }
 
 func NewServer(
@@ -71,14 +72,14 @@ func (s *Server) Start() error {
 				s.handleConnection(c)
 			}(conn)
 		default:
-			go func(c net.Conn) {
-				defer c.Close()
-				resp := &memapv1.Response{
-					Success: false,
-					Error:   "server limit reached: too many connections",
-				}
-				_ = protorw.WriteMsg(c, resp)
-			}(conn)
+			// Виправляємо (А): Синхронна відмова з коротким дедлайном без створення зайвих горутин
+			_ = conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
+			resp := &memapv1.Response{
+				Success: false,
+				Error:   "server limit reached: too many connections",
+			}
+			_ = protorw.WriteMsg(conn, resp)
+			_ = conn.Close()
 		}
 	}
 }
@@ -89,6 +90,15 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	if s.listener != nil {
 		err = s.listener.Close()
 	}
+
+	// Виправляємо (Г): Закриваємо всі активні з'єднання, перериваючи блокуючі ReadMsg
+	s.conns.Range(func(key, _ any) bool {
+		if c, ok := key.(net.Conn); ok {
+			_ = c.Close()
+		}
+		return true
+	})
+
 	done := make(chan struct{})
 	go func() {
 		s.wg.Wait()
@@ -104,7 +114,21 @@ func (s *Server) Shutdown(ctx context.Context) error {
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	defer conn.Close()
+	// Виправляємо (Б): Захист від панік, щоб збій одного запиту не клав увесь сервер
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("recovered from panic in connection handler",
+				slog.Any("panic", r),
+				slog.String("remote_addr", conn.RemoteAddr().String()),
+			)
+		}
+		s.conns.Delete(conn)
+		_ = conn.Close()
+	}()
+
+	// Виправляємо (Г): Реєструємо з'єднання в списку активних
+	s.conns.Store(conn, struct{}{})
+
 	for {
 		if s.inShutdown.Load() {
 			return
@@ -116,6 +140,21 @@ func (s *Server) handleConnection(conn net.Conn) {
 			if errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) {
 				return
 			}
+
+			// Виправляємо (В): Не логуємо штатні таймаути неактивності як Error
+			var netErr net.Error
+			if errors.As(err, &netErr) && netErr.Timeout() {
+				slog.Debug("connection closed due to idle timeout",
+					slog.String("remote_addr", conn.RemoteAddr().String()),
+				)
+				return
+			}
+
+			// Якщо сервер завершує роботу, розрив сокетів є очікуваним
+			if s.inShutdown.Load() {
+				return
+			}
+
 			slog.Error("failed to read", slog.String("error", err.Error()))
 			return
 		}
@@ -123,7 +162,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 		resp := s.processRequest(&req)
 
 		if err := protorw.WriteMsg(conn, resp); err != nil {
-			slog.Error("failed to write", slog.String("error", err.Error()))
+			if !s.inShutdown.Load() && !errors.Is(err, net.ErrClosed) {
+				slog.Error("failed to write", slog.String("error", err.Error()))
+			}
 			return
 		}
 	}
